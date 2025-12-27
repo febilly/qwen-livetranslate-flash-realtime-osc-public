@@ -9,6 +9,12 @@ from dotenv import load_dotenv
 # 加载 .env 文件中的环境变量
 load_dotenv()
 
+
+def _resource_path(*parts: str) -> Path:
+    """Return an absolute path to a bundled resource (PyInstaller) or source file."""
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
+    return base.joinpath(*parts)
+
 def check_api_key():
     """检查API Key是否配置"""
     api_key = os.environ.get("DASHSCOPE_API_KEY")
@@ -32,7 +38,7 @@ def main():
         sys.exit(1)
     
     # 检查静态文件
-    static_path = Path(__file__).parent / "static" / "index.html"
+    static_path = _resource_path("static", "index.html")
     if not static_path.exists():
         print("❌ 静态文件不存在: static/index.html")
         sys.exit(1)

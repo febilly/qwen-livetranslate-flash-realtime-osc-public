@@ -1,0 +1,12 @@
+# Web server (HTTP + WebSocket)
+fastapi>=0.110,<1.0
+uvicorn>=0.24,<1.0
+
+# Client WebSocket to DashScope realtime API
+websockets
+
+# OSC (VRChat)
+python-osc>=1.8,<2.0
+
+# Load environment variables from .env
+python-dotenv>=1.0,<2.0

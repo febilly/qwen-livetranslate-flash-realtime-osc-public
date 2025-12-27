@@ -1,8 +1,10 @@
 import os
+import sys
 import time
 import base64
 import asyncio
 import logging
+from pathlib import Path
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
@@ -16,6 +18,12 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.ERROR)  # 设置为ERROR以减少日志输出
 
 app = FastAPI()
+
+
+def _resource_path(*parts: str) -> Path:
+    """Return an absolute path to a bundled resource (PyInstaller) or source file."""
+    base = Path(getattr(sys, "_MEIPASS", Path(__file__).parent))
+    return base.joinpath(*parts)
 
 # 重连配置
 MAX_RECONNECT_ATTEMPTS = 5
@@ -145,7 +153,8 @@ async def send_heartbeat(websocket: WebSocket):
 @app.get("/")
 async def get():
     try:
-        with open("static/index.html", "r", encoding="utf-8") as f:
+        index_path = _resource_path("static", "index.html")
+        with open(index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(f.read())
     except Exception as e:
         logger.error(f"读取index.html失败: {e}")
