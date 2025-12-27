@@ -1,0 +1,6 @@
+*.opus
+*.aac
+*.mp3
+*.flac
+.env
+*.pyc

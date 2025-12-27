@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时语音翻译 - 通义千问</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .video-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .video-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .video-header {
+            background: #3498db;
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        #videoElement {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .controls-section {
+            flex: 1;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-section .control-panel {
+            margin-bottom: 20px;
+        }
+
+        .video-section .control-panel:last-child {
+            margin-bottom: 0;
+        }
+
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group select, 
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 120px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.connected {
+            background: #27ae60;
+        }
+
+        .status-indicator.disconnected {
+            background: #e74c3c;
+        }
+
+        .status-indicator.connecting {
+            background: #f39c12;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .translation-display {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            min-height: 200px;
+        }
+
+        .translation-content {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .audio-visualizer {
+            height: 60px;
+            background: #2c3e50;
+            border-radius: 8px;
+            margin: 15px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .audio-bars {
+            display: flex;
+            align-items: end;
+            height: 100%;
+            padding: 10px;
+            gap: 3px;
+        }
+
+        .audio-bar {
+            background: #3498db;
+            width: 4px;
+            min-height: 5px;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .connection-status {
+            text-align: center;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .connection-status.connected {
+            background: #d5f4e6;
+            color: #27ae60;
+            border: 1px solid #27ae60;
+        }
+
+        .connection-status.disconnected {
+            background: #fdeaea;
+            color: #e74c3c;
+            border: 1px solid #e74c3c;
+        }
+
+        .connection-status.connecting {
+            background: #fef9e7;
+            color: #f39c12;
+            border: 1px solid #f39c12;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎤 实时语音翻译</h1>
+        <p>基于通义千问 qwen3-livetranslate-flash-realtime 的视频语音翻译服务</p>
+    </div>
+
+    <div class="main-container">
+        <!-- 视频区域 -->
+        <div class="video-section">
+            <div class="video-container">
+                <div class="video-header">
+                    📹 摄像头视频流 (流畅显示，发送2帧/秒)
+                </div>
+                <video id="videoElement" autoplay muted playsinline></video>
+            </div>
+            
+            <!-- 麦克风选择面板 -->
+            <div class="control-panel">
+                <div class="panel-title">🎤 麦克风选择</div>
+                <div class="form-group">
+                    <label for="microphoneSelect">选择麦克风设备</label>
+                    <select id="microphoneSelect">
+                        <option value="">加载中...</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 音频可视化 -->
+            <div class="control-panel">
+                <div class="panel-title">🎵 音频可视化</div>
+                <div class="audio-visualizer">
+                    <div class="audio-bars" id="audioBars">
+                        <!-- 音频条将动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 控制面板 -->
+        <div class="controls-section">
+            <div class="connection-status disconnected" id="connectionStatus">
+                <span class="status-indicator disconnected"></span>
+                未连接
+            </div>
+
+            <div class="control-panel">
+                <div class="panel-title">⚙️ 配置设置</div>
+                
+                <div class="form-group">
+                    <label for="targetLanguage">目标语言</label>
+                    <select id="targetLanguage">
+                        <option value="en">英语 (音频+文本)</option>
+                        <option value="zh">中文 (音频+文本)</option>
+                        <option value="ru">俄语 (音频+文本)</option>
+                        <option value="fr">法语 (音频+文本)</option>
+                        <option value="de">德语 (音频+文本)</option>
+                        <option value="pt">葡萄牙语 (音频+文本)</option>
+                        <option value="es">西班牙语 (音频+文本)</option>
+                        <option value="it">意大利语 (音频+文本)</option>
+                        <option value="ko">韩语 (音频+文本)</option>
+                        <option value="ja" selected>日语 (音频+文本)</option>
+                        <option value="yue">粤语 (音频+文本)</option>
+                        <option value="id">印尼语 (仅文本)</option>
+                        <option value="vi">越南语 (仅文本)</option>
+                        <option value="th">泰语 (仅文本)</option>
+                        <option value="ar">阿拉伯语 (仅文本)</option>
+                        <option value="hi">印地语 (仅文本)</option>
+                        <option value="el">希腊语 (仅文本)</option>
+                        <option value="tr">土耳其语 (仅文本)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="voiceSelect">语音音色</label>
+                    <select id="voiceSelect">
+                        <option value="Cherry" selected>1. Cherry (女声) [默认]</option>
+                        <option value="Nofish">2. Nofish (男声)</option>
+                        <option value="Sunny">3. 晴儿 Sunny (四川女声)</option>
+                        <option value="Jada">4. 阿珍 Jada (上海女声)</option>
+                        <option value="Dylan">5. 晓东 Dylan (北京男声)</option>
+                        <option value="Peter">6. 李彼得 Peter (天津男声)</option>
+                        <option value="Eric">7. 程川 Eric (四川男声)</option>
+                        <option value="Kiki">8. 阿清 Kiki (粤语女声)</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="audioEnabled">
+                    <label for="audioEnabled">启用音频输出</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="cameraEnabled">
+                    <label for="cameraEnabled">启用摄像头</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="oscMuteControl" checked>
+                    <label for="oscMuteControl">游戏静音时停止处理语音</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="sendToOsc" checked>
+                    <label for="sendToOsc">发送翻译结果到OSC</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="disableEchoCancellation">
+                    <label for="disableEchoCancellation">禁用浏览器回声消除</label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="startBtn">开始翻译</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled>停止翻译</button>
+                </div>
+            </div>
+
+            <div class="translation-display">
+                <div class="panel-title">📝 翻译结果</div>
+                <div class="translation-content" id="translationContent">
+                    等待开始翻译...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LiveTranslateApp {
+            constructor() {
+                this.ws = null;
+                this.mediaRecorder = null;
+                this.audioStream = null;
+                this.videoStream = null;
+                this.isRecording = false;
+                this.audioContext = null;
+                this.analyser = null;
+                this.dataArray = null;
+                this.animationId = null;
+                this.videoIntervalId = null;
+                this.playbackAudioContext = null;
+                this.playbackQueue = [];
+                this.isAudioPlaying = false;
+                
+                this.initElements();
+                this.bindEvents();
+                this.enumerateAudioDevices();
+                this.requestUserMedia();
+            }
+
+            initElements() {
+                this.videoElement = document.getElementById('videoElement');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.translationContent = document.getElementById('translationContent');
+                this.targetLanguage = document.getElementById('targetLanguage');
+                this.voiceSelect = document.getElementById('voiceSelect');
+                this.audioEnabled = document.getElementById('audioEnabled');
+                this.cameraEnabled = document.getElementById('cameraEnabled');
+                this.oscMuteControl = document.getElementById('oscMuteControl');
+                this.sendToOsc = document.getElementById('sendToOsc');
+                this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
+                this.audioBars = document.getElementById('audioBars');
+                this.microphoneSelect = document.getElementById('microphoneSelect');
+                
+                // 创建音频可视化条
+                for (let i = 0; i < 32; i++) {
+                    const bar = document.createElement('div');
+                    bar.className = 'audio-bar';
+                    this.audioBars.appendChild(bar);
+                }
+            }
+
+            bindEvents() {
+                this.startBtn.onclick = () => this.startTranslation();
+                this.stopBtn.onclick = () => this.stopTranslation();
+                this.cameraEnabled.onchange = () => this.toggleCamera();
+                this.targetLanguage.onchange = () => this.restartSession();
+                this.voiceSelect.onchange = () => this.restartSession();
+                this.audioEnabled.onchange = () => this.pushSessionUpdate();
+                this.microphoneSelect.onchange = () => this.changeMicrophone();
+            }
+
+            async requestUserMedia() {
+                try {
+                    const timestamp = new Date().toLocaleTimeString();
+                    console.log(`[${timestamp}] 请求用户媒体权限...`);
+                    
+                    // 仅请求麦克风，摄像头按需单独获取
+                    const echoCancellationEnabled = !this.disableEchoCancellation.checked;
+                    console.log(`[${timestamp}] 回声消除设置: ${echoCancellationEnabled ? '启用' : '禁用'}`);
+                    
+                    const constraints = {
+                        audio: {
+                            sampleRate: 16000,
+                            channelCount: 1,
+                            echoCancellation: echoCancellationEnabled,
+                            noiseSuppression: true
+                        }
+                    };
+                    
+                    // 如果已选择特定麦克风，使用该设备
+                    if (this.selectedMicrophoneId) {
+                        constraints.audio.deviceId = { exact: this.selectedMicrophoneId };
+                    }
+                    
+                    this.audioStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    
+                    // 检查音频轨道
+                    const audioTracks = this.audioStream.getAudioTracks();
+                    
+                    console.log(`[${timestamp}] 获取到 ${audioTracks.length} 个音频轨道`);
+                    
+                    if (audioTracks.length > 0) {
+                        const track = audioTracks[0];
+                        const settings = track.getSettings();
+                        console.log(`[${timestamp}] 音频轨道信息:`, {
+                            label: track.label,
+                            enabled: track.enabled,
+                            readyState: track.readyState,
+                            settings: settings
+                        });
+                        
+                        // 保存当前使用的设备ID（系统默认麦克风）
+                        if (settings.deviceId) {
+                            this.selectedMicrophoneId = settings.deviceId;
+                            console.log(`[${timestamp}] 系统默认麦克风设备ID: ${settings.deviceId}`);
+                        }
+                    } else {
+                        console.error(`[${timestamp}] 没有获取到音频轨道！`);
+                    }
+                    
+                this.setupAudioVisualization();
+                console.log(`[${timestamp}] 用户媒体已获取`);
+                
+                // 获取权限后重新枚举设备以显示设备标签
+                await this.enumerateAudioDevices();
+
+            } catch (error) {
+                console.error('获取用户媒体失败:', error);
+                alert('需要摄像头和麦克风权限才能使用翻译功能');
+            }
+            }
+
+            async enumerateAudioDevices() {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const audioInputDevices = devices.filter(device => device.kind === 'audioinput');
+                    
+                    this.microphoneSelect.innerHTML = '';
+                    
+                    if (audioInputDevices.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = '没有找到麦克风设备';
+                        this.microphoneSelect.appendChild(option);
+                        return;
+                    }
+                    
+                    audioInputDevices.forEach((device, index) => {
+                        const option = document.createElement('option');
+                        option.value = device.deviceId;
+                        option.textContent = device.label || `麦克风 ${index + 1}`;
+                        this.microphoneSelect.appendChild(option);
+                    });
+                    
+                    // 如果有已选择的设备，保持选择
+                    if (this.selectedMicrophoneId) {
+                        this.microphoneSelect.value = this.selectedMicrophoneId;
+                    }
+                    
+                    console.log(`发现 ${audioInputDevices.length} 个音频输入设备`);
+                } catch (error) {
+                    console.error('枚举音频设备失败:', error);
+                    this.microphoneSelect.innerHTML = '<option value="">无法获取设备列表</option>';
+                }
+            }
+
+            async changeMicrophone() {
+                const selectedDeviceId = this.microphoneSelect.value;
+                if (!selectedDeviceId) return;
+                
+                this.selectedMicrophoneId = selectedDeviceId;
+                const timestamp = new Date().toLocaleTimeString();
+                console.log(`[${timestamp}] 切换麦克风: ${selectedDeviceId}`);
+                
+                // 如果正在录音，需要重新获取媒体流
+                const wasRecording = this.isRecording;
+                
+                // 停止当前的音频流和可视化
+                if (this.audioStream) {
+                    this.audioStream.getTracks().forEach(track => track.stop());
+                    this.audioStream = null;
+                }
+                
+                // 停止音频上下文
+                if (this.audioContext) {
+                    if (this.analyser) {
+                        try { this.analyser.disconnect(); } catch {}
+                    }
+                    try { await this.audioContext.close(); } catch {}
+                    this.audioContext = null;
+                    this.analyser = null;
+                }
+                
+                // 停止录音相关组件
+                this.stopPcmCapture();
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                    this.mediaRecorder.stop();
+                    this.mediaRecorder = null;
+                }
+                
+                // 重新获取媒体流
+                try {
+                    const echoCancellationEnabled = !this.disableEchoCancellation.checked;
+                    this.audioStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
+                            sampleRate: 16000,
+                            channelCount: 1,
+                            echoCancellation: echoCancellationEnabled,
+                            noiseSuppression: true
+                        }
+                    });
+                    
+                    console.log(`[${timestamp}] 已切换到新麦克风设备`);
+                    
+                    // 重新设置音频可视化
+                    this.setupAudioVisualization();
+                    
+                    // 如果之前在录音，重新开始录音
+                    if (wasRecording) {
+                        this.startRecording();
+                    }
+                } catch (error) {
+                    console.error('切换麦克风失败:', error);
+                    alert('切换麦克风失败，请重试');
+                }
+            }
+
+            setupAudioVisualization() {
+            if (this.audioContext) return;
+                
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = this.audioContext.createMediaStreamSource(this.audioStream);
+                this.analyser = this.audioContext.createAnalyser();
+                this.analyser.fftSize = 64;
+                source.connect(this.analyser);
+                
+                this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+                this.visualizeAudio();
+            }
+
+            visualizeAudio() {
+                const bars = this.audioBars.children;
+                
+                const animate = () => {
+                    if (this.analyser) {
+                        this.analyser.getByteFrequencyData(this.dataArray);
+                        
+                        for (let i = 0; i < bars.length; i++) {
+                            const barHeight = (this.dataArray[i] / 255) * 40 + 5;
+                            bars[i].style.height = `${barHeight}px`;
+                        }
+                    }
+                    
+                    this.animationId = requestAnimationFrame(animate);
+                };
+                
+                animate();
+            }
+
+            updateConnectionStatus(status, message) {
+                const indicator = this.connectionStatus.querySelector('.status-indicator');
+                
+                this.connectionStatus.className = `connection-status ${status}`;
+                indicator.className = `status-indicator ${status}`;
+                this.connectionStatus.innerHTML = `<span class="status-indicator ${status}"></span>${message}`;
+            }
+
+            async startTranslation() {
+                if (!this.audioStream) {
+                    alert('请先允许摄像头和麦克风权限');
+                    return;
+                }
+
+                try {
+                    // 构建WebSocket URL with parameters
+                    const wsUrl = new URL('/ws', window.location);
+                    wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                    wsUrl.searchParams.set('target_language', this.targetLanguage.value);
+                    wsUrl.searchParams.set('voice', this.voiceSelect.value);
+                    wsUrl.searchParams.set('audio_enabled', this.audioEnabled.checked);
+                    wsUrl.searchParams.set('osc_mute_control', this.oscMuteControl.checked);
+                    wsUrl.searchParams.set('send_to_osc', this.sendToOsc.checked);
+
+                    this.ws = new WebSocket(wsUrl.toString());
+                    
+                    this.ws.onopen = () => {
+                        console.log('WebSocket连接已建立');
+                        this.updateConnectionStatus('connected', '已连接');
+                        this.startRecording();
+                        if (this.cameraEnabled.checked) this.startVideoCapture();
+                        this.startBtn.disabled = true;
+                        this.stopBtn.disabled = false;
+                        // 不在 onopen 立即 push，会与初始 session.update 冲突导致 TTS 重置
+                    };
+
+                    this.ws.onmessage = (event) => {
+                        const timestamp = new Date().toLocaleTimeString();
+                        
+                        if (typeof event.data === 'string') {
+                            console.log(`[${timestamp}] 客户端收到文本事件:`, event.data);
+                            
+                            if (event.data === 'interrupt') {
+                                console.log(`[${timestamp}] 收到中断信号`);
+                                return;
+                            }
+                            
+                            try {
+                                const message = JSON.parse(event.data);
+                                console.log(`[${timestamp}] 解析JSON消息:`, message);
+                                if (message.type === 'translation_text') {
+                                    console.log(`[${timestamp}] 收到翻译文本: ${message.data}`);
+                                    this.appendTranslation(message.data);
+                                }
+                            } catch (e) {
+                                console.log(`[${timestamp}] 收到普通文本消息:`, event.data);
+                            }
+                    } else if (event.data instanceof Blob) {
+                        console.log(`[${timestamp}] 收到音频Blob数据: ${event.data.size} bytes, 类型: ${event.data.type}`);
+                        this.enqueueAudioBlob(event.data);
+                    } else if (event.data instanceof ArrayBuffer) {
+                        console.log(`[${timestamp}] 收到ArrayBuffer数据: ${event.data.byteLength} bytes`);
+                        const audioBlob = new Blob([event.data], { type: 'audio/pcm' });
+                        this.enqueueAudioBlob(audioBlob);
+                        } else {
+                            console.log(`[${timestamp}] 收到未知类型数据:`, typeof event.data, event.data);
+                        }
+                    };
+
+                    this.ws.onclose = (event) => {
+                        console.log('WebSocket连接已关闭', event);
+                        this.updateConnectionStatus('disconnected', '连接已关闭');
+                        this.stopRecording();
+                        this.stopVideoCapture();
+                        this.startBtn.disabled = false;
+                        this.stopBtn.disabled = true;
+                    };
+
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket错误:', error);
+                        this.updateConnectionStatus('disconnected', '连接错误');
+                    };
+
+                    this.updateConnectionStatus('connecting', '连接中...');
+                    
+                } catch (error) {
+                    console.error('启动翻译失败:', error);
+                    this.updateConnectionStatus('disconnected', '连接失败');
+                }
+            }
+
+            restartSession() {
+                // 目的：在语言/音色更改后，如果正在翻译则重启会话并应用新参数；否则仅更新配置
+                const t = new Date().toLocaleTimeString();
+                
+                // 检查是否正在翻译中
+                const wasRecording = this.isRecording;
+                
+                if (!wasRecording) {
+                    console.log(`[${t}] 检测到配置变更，但未在翻译中，仅更新配置`);
+                    return;
+                }
+                
+                console.log(`[${t}] 检测到配置变更，重启会话...`);
+                try {
+                    // 关闭现有连接（若存在）
+                    if (this.ws && (this.ws.readyState === WebSocket.OPEN || this.ws.readyState === WebSocket.CONNECTING)) {
+                        try { this.ws.close(); } catch {}
+                        this.ws = null;
+                    }
+                    // 停止当前采集，但保留已获取的媒体流以便快速重连
+                    this.stopRecording();
+                    this.stopVideoCapture();
+                    // 立即按新参数重连
+                    this.startTranslation();
+                } catch (e) {
+                    console.error(`[${t}] 重启会话失败:`, e);
+                }
+            }
+
+            pushSessionUpdate() {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                const payload = {
+                    type: 'session.update',
+                    target_language: this.targetLanguage.value,
+                    voice: this.voiceSelect.value,
+                    audio_enabled: this.audioEnabled.checked
+                };
+                // 去重：相同配置不重复下发，避免打断当前TTS
+                const key = JSON.stringify(payload);
+                if (this._lastSessionUpdateKey === key) {
+                    return;
+                }
+                this._lastSessionUpdateKey = key;
+                this.ws.send(key);
+                const t = new Date().toLocaleTimeString();
+                console.log(`[${t}] 已发送会话更新:`, payload);
+            }
+
+            stopTranslation() {
+                if (this.ws) {
+                    this.ws.close();
+                    this.ws = null;
+                }
+                
+                this.stopRecording();
+                this.stopVideoCapture();
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+                this.updateConnectionStatus('disconnected', '已断开连接');
+            }
+
+            startRecording() {
+                // 优先使用基于WebAudio的PCM16采集，保证与服务端/模型的pcm16协议一致
+                try {
+                    this.startPcmCapture();
+                    return;
+                } catch (e) {
+                    console.error(`[${new Date().toLocaleTimeString()}] 启动PCM采集失败，回退到MediaRecorder:`, e);
+                }
+
+                // 回退方案：使用MediaRecorder（可能是有损压缩，模型未必接受）
+                if (this.mediaRecorder) return;
+                const timestamp = new Date().toLocaleTimeString();
+                console.log(`[${timestamp}] 回退使用MediaRecorder音频录制...`);
+                try {
+                    const supportedTypes = [
+                        'audio/webm',
+                        'audio/webm;codecs=opus',
+                        'audio/mp4',
+                        'audio/ogg;codecs=opus'
+                    ];
+                    let selectedType = null;
+                    for (const type of supportedTypes) {
+                        if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) {
+                            selectedType = type;
+                            console.log(`[${timestamp}] 使用音频格式: ${type}`);
+                            break;
+                        }
+                    }
+                    this.mediaRecorder = new MediaRecorder(this.stream, selectedType ? { mimeType: selectedType } : {});
+                    this.mediaRecorder.ondataavailable = (event) => {
+                        const t = new Date().toLocaleTimeString();
+                        console.log(`[${t}] 音频数据可用: ${event.data.size} bytes, 类型: ${event.data.type}`);
+                        if (event.data.size > 0 && this.ws && this.ws.readyState === WebSocket.OPEN) {
+                            this.convertAndSendAudio(event.data);
+                        }
+                    };
+                    this.mediaRecorder.onerror = (event) => {
+                        console.error(`[${new Date().toLocaleTimeString()}] 音频录制错误:`, event);
+                    };
+                    this.mediaRecorder.start(100);
+                    this.isRecording = true;
+                    console.log(`[${timestamp}] 录音已开始(MediaRecorder)`);
+                } catch (error) {
+                    console.error(`[${timestamp}] MediaRecorder初始化失败:`, error);
+                }
+            }
+
+            // ========= 基于WebAudio的PCM16采集 =========
+            startPcmCapture() {
+                if (!this.audioStream) throw new Error('未获取到媒体流');
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const timestamp = new Date().toLocaleTimeString();
+                const inputSampleRate = this.audioContext.sampleRate;
+                this.pcmTargetRate = 16000;
+                console.log(`[${timestamp}] 启动PCM采集，输入采样率: ${inputSampleRate}, 目标: ${this.pcmTargetRate}`);
+
+                this.pcmSource = this.audioContext.createMediaStreamSource(this.audioStream);
+                // 使用脚本处理节点（兼容性好）；缓冲区大小4096
+                this.pcmProcessor = this.audioContext.createScriptProcessor(4096, 1, 1);
+                this.pcmBuffer = new Float32Array(0);
+                this.pcmInt16Acc = new Int16Array(0);
+                this.pcmRemainder = new Float32Array(0);
+
+                this.pcmProcessor.onaudioprocess = (e) => {
+                    try {
+                        const input = e.inputBuffer.getChannelData(0);
+                        // 累积并下采样到16k
+                        const downsampled = this.downsampleTo16k(input, inputSampleRate, this.pcmTargetRate, this.pcmRemainder);
+                        this.pcmRemainder = downsampled.remainder;
+                        const float16k = downsampled.samples;
+                        if (float16k.length === 0) return;
+
+                        const int16 = this.floatTo16BitPCM(float16k);
+
+                        // 按1600样本(100ms@16k)切片发送，降低服务器压力
+                        this.sendInt16InChunks(int16, 1600);
+                    } catch (err) {
+                        console.error(`[${new Date().toLocaleTimeString()}] PCM处理错误:`, err);
+                    }
+                };
+
+                this.pcmSource.connect(this.pcmProcessor);
+                this.pcmProcessor.connect(this.audioContext.destination);
+                this.isRecording = true;
+            }
+
+            stopPcmCapture() {
+                if (this.pcmProcessor) {
+                    try { this.pcmProcessor.disconnect(); } catch {}
+                    this.pcmProcessor = null;
+                }
+                if (this.pcmSource) {
+                    try { this.pcmSource.disconnect(); } catch {}
+                    this.pcmSource = null;
+                }
+            }
+
+            downsampleTo16k(inputFloat32, inputRate, targetRate, remainder) {
+                if (inputRate === targetRate) {
+                    // 直接拼接余量
+                    if (remainder && remainder.length) {
+                        const merged = new Float32Array(remainder.length + inputFloat32.length);
+                        merged.set(remainder, 0);
+                        merged.set(inputFloat32, remainder.length);
+                        return { samples: merged, remainder: new Float32Array(0) };
+                    }
+                    return { samples: inputFloat32, remainder: new Float32Array(0) };
+                }
+                const ratio = inputRate / targetRate;
+                const total = (remainder ? remainder.length : 0) + inputFloat32.length;
+                const buffer = new Float32Array(total);
+                if (remainder && remainder.length) buffer.set(remainder, 0);
+                buffer.set(inputFloat32, remainder ? remainder.length : 0);
+
+                const newLength = Math.floor(buffer.length / ratio);
+                const output = new Float32Array(newLength);
+                let offsetResult = 0;
+                let offsetBuffer = 0;
+                while (offsetResult < output.length) {
+                    const nextOffsetBuffer = Math.round((offsetResult + 1) * ratio);
+                    let accum = 0, count = 0;
+                    for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+                        accum += buffer[i];
+                        count++;
+                    }
+                    output[offsetResult] = accum / (count || 1);
+                    offsetResult++;
+                    offsetBuffer = nextOffsetBuffer;
+                }
+                // 余量保留
+                const remainderStart = Math.floor(output.length * ratio);
+                const rem = remainderStart < buffer.length ? buffer.slice(remainderStart) : new Float32Array(0);
+                return { samples: output, remainder: rem };
+            }
+
+            floatTo16BitPCM(float32Array) {
+                const int16 = new Int16Array(float32Array.length);
+                for (let i = 0; i < float32Array.length; i++) {
+                    let s = Math.max(-1, Math.min(1, float32Array[i]));
+                    int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+                }
+                return int16;
+            }
+
+            sendInt16InChunks(int16Array, samplesPerChunk) {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                const totalSamples = int16Array.length;
+                let offset = 0;
+                while (offset < totalSamples) {
+                    const end = Math.min(offset + samplesPerChunk, totalSamples);
+                    const chunk = int16Array.subarray(offset, end);
+                    const bytes = new Uint8Array(chunk.buffer, chunk.byteOffset, chunk.byteLength);
+                    const message = new Uint8Array(bytes.length + 1);
+                    message[0] = 0; // 音频标识
+                    message.set(bytes, 1);
+                    const t = new Date().toLocaleTimeString();
+                    console.log(`[${t}] 发送PCM16音频帧: ${chunk.length} samples, ${bytes.length} bytes`);
+                    this.ws.send(message);
+                    offset = end;
+                }
+            }
+
+            async convertAndSendAudio(audioBlob) {
+                try {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    
+                    // 这里简化处理，实际应该转换为16kHz PCM
+                    // 为了简化，我们直接发送原始音频数据
+                    const audioData = new Uint8Array(arrayBuffer);
+                    
+                    // 添加流类型标识 (0 = 音频)
+                    const message = new Uint8Array(audioData.length + 1);
+                    message[0] = 0; // 音频流标识
+                    message.set(audioData, 1);
+                    
+                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                        console.log(`[${timestamp}] 客户端发送音频数据: ${audioData.length} bytes`);
+                        this.ws.send(message);
+                    } else {
+                        console.warn(`[${timestamp}] WebSocket未连接，跳过音频发送`);
+                    }
+                } catch (error) {
+                    console.error('转换音频数据失败:', error);
+                }
+            }
+
+            startVideoCapture() {
+                if (this.videoIntervalId) return;
+
+                // 每秒2帧发送给服务器，但前端显示保持流畅
+                this.videoIntervalId = setInterval(async () => {
+                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                        await this.captureAndSendFrame();
+                    }
+                }, 500); // 500ms = 2fps发送到服务器
+                
+                console.log('视频捕获已开始 (显示流畅, 发送2fps)');
+            }
+
+            toggleCamera() {
+                // 动态拉取/停止视频流
+                if (this.cameraEnabled.checked) {
+                    // 拉取视频流并展示
+                    (async () => {
+                        try {
+                            this.videoStream = await navigator.mediaDevices.getUserMedia({
+                                video: {
+                                    width: { ideal: 640 },
+                                    height: { ideal: 480 },
+                                    frameRate: { ideal: 30 }
+                                }
+                            });
+                            this.videoElement.srcObject = this.videoStream;
+                            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                                this.startVideoCapture();
+                            }
+                        } catch (e) {
+                            console.error('获取视频流失败:', e);
+                            this.cameraEnabled.checked = false;
+                        }
+                    })();
+                } else {
+                    this.stopVideoCapture();
+                    if (this.videoStream) {
+                        for (const track of this.videoStream.getTracks()) track.stop();
+                        this.videoStream = null;
+                        this.videoElement.srcObject = null;
+                    }
+                }
+            }
+
+            async captureAndSendFrame() {
+                try {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = this.videoElement.videoWidth || 640;
+                    canvas.height = this.videoElement.videoHeight || 480;
+                    
+                    ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+                    
+                    // 转换为JPEG格式
+                    const blob = await new Promise(resolve => {
+                        canvas.toBlob(resolve, 'image/jpeg', 0.8);
+                    });
+                    
+                    if (blob) {
+                        const imageData = await blob.arrayBuffer();
+                        const imageArray = new Uint8Array(imageData);
+                        
+                        // 添加流类型标识 (1 = 视频)
+                        const message = new Uint8Array(imageArray.length + 1);
+                        message[0] = 1; // 视频流标识
+                        message.set(imageArray, 1);
+                        
+                        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                            console.log(`[${timestamp}] 客户端发送视频帧: ${imageArray.length} bytes`);
+                            this.ws.send(message);
+                        } else {
+                            console.warn(`[${timestamp}] WebSocket未连接，跳过视频发送`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('捕获视频帧失败:', error);
+                }
+            }
+
+            stopRecording() {
+                // 停止PCM采集
+                this.stopPcmCapture();
+                // 停止MediaRecorder（若曾回退使用）
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                    this.mediaRecorder.stop();
+                    this.mediaRecorder = null;
+                }
+                this.isRecording = false;
+                console.log('录音已停止');
+            }
+
+            stopVideoCapture() {
+                if (this.videoIntervalId) {
+                    clearInterval(this.videoIntervalId);
+                    this.videoIntervalId = null;
+                }
+                console.log('视频捕获已停止');
+            }
+
+            appendTranslation(text) {
+                const now = new Date().toLocaleTimeString();
+                const translationHtml = `<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <small style="color: #666; font-size: 0.9rem;">${now}</small><br>
+                    <strong style="color: #2c3e50;">${text}</strong>
+                </div>`;
+                
+                this.translationContent.innerHTML = translationHtml + this.translationContent.innerHTML;
+                
+                // 保持最近10条记录
+                const children = this.translationContent.children;
+                if (children.length > 10) {
+                    this.translationContent.removeChild(children[children.length - 1]);
+                }
+            }
+
+            async playAudio(audioBlob) {
+                try {
+                    const timestamp = new Date().toLocaleTimeString();
+                    console.log(`[${timestamp}] 开始播放音频，Blob大小: ${audioBlob.size} bytes, 类型: ${audioBlob.type}`);
+                    
+                    // 确保音频上下文已创建
+                    if (!this.playbackAudioContext) {
+                        this.playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        console.log(`[${timestamp}] 创建音频上下文，采样率: ${this.playbackAudioContext.sampleRate}`);
+                    }
+                    
+                    // 检查音频上下文状态
+                    if (this.playbackAudioContext.state === 'suspended') {
+                        console.log(`[${timestamp}] 音频上下文被挂起，尝试恢复...`);
+                        await this.playbackAudioContext.resume();
+                        console.log(`[${timestamp}] 音频上下文状态: ${this.playbackAudioContext.state}`);
+                    }
+                    
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    console.log(`[${timestamp}] 转换为ArrayBuffer: ${arrayBuffer.byteLength} bytes`);
+                    
+                    // 处理PCM16格式的音频数据（从服务器接收的原始音频数据）
+                    const int16Array = new Int16Array(arrayBuffer);
+                    console.log(`[${timestamp}] Int16Array长度: ${int16Array.length}, 前几个样本: [${int16Array.slice(0, 5).join(', ')}]`);
+                    
+                    // 检查音频数据是否有效
+                    if (int16Array.length === 0) {
+                        console.warn(`[${timestamp}] 音频数据为空`);
+                        return;
+                    }
+                    
+                    const float32Array = new Float32Array(int16Array.length);
+                    
+                    // 将Int16转换为Float32（-1.0到1.0范围）
+                    for (let i = 0; i < int16Array.length; i++) {
+                        float32Array[i] = int16Array[i] / 32768;
+                    }
+                    console.log(`[${timestamp}] 转换为Float32Array，前几个样本: [${float32Array.slice(0, 5).join(', ')}]`);
+                    
+                    // 创建音频缓冲区（24kHz单声道）
+                    const audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                    audioBuffer.copyToChannel(float32Array, 0);
+                    console.log(`[${timestamp}] 创建音频缓冲区: 1声道, ${float32Array.length}样本, 24kHz`);
+                    
+                    // 创建音频源并播放
+                    const source = this.playbackAudioContext.createBufferSource();
+                    source.buffer = audioBuffer;
+                    source.connect(this.playbackAudioContext.destination);
+                    
+                    const duration = (int16Array.length / 24000).toFixed(2);
+                    console.log(`[${timestamp}] 准备播放音频: ${int16Array.length} 样本, 时长约 ${duration}秒`);
+                    
+                    source.onended = () => {
+                        console.log(`[${new Date().toLocaleTimeString()}] 音频播放完成`);
+                    };
+                    
+                    source.onerror = (error) => {
+                        console.error(`[${new Date().toLocaleTimeString()}] 音频播放出错:`, error);
+                    };
+                    
+                    source.start();
+                    console.log(`[${timestamp}] 音频开始播放`);
+                    
+                } catch (error) {
+                    console.error(`[${new Date().toLocaleTimeString()}] 播放音频失败:`, error);
+                    console.error('错误堆栈:', error.stack);
+                }
+            }
+
+            async enqueueAudioBlob(audioBlob) {
+                try {
+                    if (!this.playbackAudioContext) {
+                        this.playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const int16Array = new Int16Array(arrayBuffer);
+                    if (int16Array.length === 0) return;
+                    const float32Array = new Float32Array(int16Array.length);
+                    for (let i = 0; i < int16Array.length; i++) {
+                        float32Array[i] = int16Array[i] / 32768;
+                    }
+                    this.playbackQueue.push(float32Array);
+                    const t = new Date().toLocaleTimeString();
+                    console.log(`[${t}] 入队音频片段: ${float32Array.length} 样本，当前队列: ${this.playbackQueue.length}`);
+                    this.playNextAudioFromQueue();
+                } catch (err) {
+                    console.error('enqueueAudioBlob失败:', err);
+                }
+            }
+
+            playNextAudioFromQueue() {
+                if (this.isAudioPlaying) return;
+                if (!this.playbackQueue.length) return;
+
+                const float32Array = this.playbackQueue.shift();
+                this.isAudioPlaying = true;
+
+                if (!this.playbackAudioContext) {
+                    this.playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+
+                const audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                audioBuffer.copyToChannel(float32Array, 0);
+
+                const source = this.playbackAudioContext.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(this.playbackAudioContext.destination);
+
+                const t = new Date().toLocaleTimeString();
+                console.log(`[${t}] 播放队列音频: ${float32Array.length} 样本，剩余队列: ${this.playbackQueue.length}`);
+
+                source.onended = () => {
+                    this.isAudioPlaying = false;
+                    this.playNextAudioFromQueue();
+                };
+                source.start();
+            }
+        }
+
+        // 页面加载完成后初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new LiveTranslateApp();
+        });
+    </script>
+</body>
+</html>
