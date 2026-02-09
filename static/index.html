@@ -412,6 +412,11 @@
                 </div>
 
                 <div class="checkbox-group">
+                    <input type="checkbox" id="lineBreaksEnabled">
+                    <label for="lineBreaksEnabled">启用分行显示（句末换行）</label>
+                </div>
+
+                <div class="checkbox-group">
                     <input type="checkbox" id="disableEchoCancellation">
                     <label for="disableEchoCancellation">禁用浏览器回声消除</label>
                 </div>
@@ -466,6 +471,7 @@
                 this.cameraEnabled = document.getElementById('cameraEnabled');
                 this.oscMuteControl = document.getElementById('oscMuteControl');
                 this.sendToOsc = document.getElementById('sendToOsc');
+                this.lineBreaksEnabled = document.getElementById('lineBreaksEnabled');
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
                 this.audioBars = document.getElementById('audioBars');
                 this.microphoneSelect = document.getElementById('microphoneSelect');
@@ -485,6 +491,7 @@
                 this.targetLanguage.onchange = () => this.restartSession();
                 this.voiceSelect.onchange = () => this.restartSession();
                 this.audioEnabled.onchange = () => this.pushSessionUpdate();
+                this.lineBreaksEnabled.onchange = () => this.pushFormatUpdate();
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
             }
 
@@ -700,6 +707,7 @@
                     wsUrl.searchParams.set('audio_enabled', this.audioEnabled.checked);
                     wsUrl.searchParams.set('osc_mute_control', this.oscMuteControl.checked);
                     wsUrl.searchParams.set('send_to_osc', this.sendToOsc.checked);
+                    wsUrl.searchParams.set('line_breaks_enabled', this.lineBreaksEnabled.checked);
 
                     this.ws = new WebSocket(wsUrl.toString());
                     
@@ -814,6 +822,17 @@
                 this.ws.send(key);
                 const t = new Date().toLocaleTimeString();
                 console.log(`[${t}] 已发送会话更新:`, payload);
+            }
+
+            pushFormatUpdate() {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                const payload = {
+                    type: 'format.update',
+                    line_breaks_enabled: this.lineBreaksEnabled.checked
+                };
+                this.ws.send(JSON.stringify(payload));
+                const t = new Date().toLocaleTimeString();
+                console.log(`[${t}] 已发送分行设置更新:`, payload);
             }
 
             stopTranslation() {

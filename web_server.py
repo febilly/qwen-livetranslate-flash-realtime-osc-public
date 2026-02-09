@@ -166,12 +166,14 @@ async def websocket_endpoint(websocket: WebSocket,
                            voice: str = "Cherry", 
                            audio_enabled: bool = True,
                            osc_mute_control: bool = True,
-                           send_to_osc: bool = True):
+                           send_to_osc: bool = True,
+                           line_breaks_enabled: bool = False):
     await websocket.accept()
-    logger.info(f"WebSocket连接已建立, 目标语言: {target_language}, 音色: {voice}, 音频: {audio_enabled}, OSC静音控制: {osc_mute_control}, 发送到OSC: {send_to_osc}")
+    logger.info(f"WebSocket连接已建立, 目标语言: {target_language}, 音色: {voice}, 音频: {audio_enabled}, OSC静音控制: {osc_mute_control}, 发送到OSC: {send_to_osc}, 分行逻辑: {line_breaks_enabled}")
     
     # 确保OSC服务器已启动（只启动一次）
     await osc_manager.start_server()
+    osc_manager.set_line_breaks_enabled(line_breaks_enabled)
     
     api_key = os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
@@ -275,17 +277,22 @@ async def websocket_endpoint(websocket: WebSocket,
                                 try:
                                     import json as _json
                                     payload = _json.loads(text_data)
-                                    if isinstance(payload, dict) and payload.get('type') == 'session.update':
-                                        lang = payload.get('target_language')
-                                        voice = payload.get('voice')
-                                        audio_enabled = payload.get('audio_enabled')
-                                        if client:
-                                            await client.update_session(
-                                                target_language=lang,
-                                                voice=voice,
-                                                audio_enabled=audio_enabled
-                                            )
-                                            logger.info(f"已下发会话更新: lang={lang}, voice={voice}, audio={audio_enabled}")
+                                    if isinstance(payload, dict):
+                                        if payload.get('type') == 'session.update':
+                                            lang = payload.get('target_language')
+                                            voice = payload.get('voice')
+                                            audio_enabled = payload.get('audio_enabled')
+                                            if client:
+                                                await client.update_session(
+                                                    target_language=lang,
+                                                    voice=voice,
+                                                    audio_enabled=audio_enabled
+                                                )
+                                                logger.info(f"已下发会话更新: lang={lang}, voice={voice}, audio={audio_enabled}")
+                                        elif payload.get('type') == 'format.update':
+                                            line_breaks_enabled = bool(payload.get('line_breaks_enabled', False))
+                                            osc_manager.set_line_breaks_enabled(line_breaks_enabled)
+                                            logger.info(f"已更新分行逻辑: {line_breaks_enabled}")
                                 except Exception as _e:
                                     logger.debug(f"解析/处理文本消息失败或非更新消息: {_e}")
 

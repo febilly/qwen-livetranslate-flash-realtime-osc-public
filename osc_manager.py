@@ -32,6 +32,7 @@ class OSCManager:
             self._server = None
             self._client = None
             self._mute_callback = None  # 静音状态变化的回调函数
+            self._line_breaks_enabled = False
             
             # OSC客户端配置（发送到VRChat）
             self._osc_client_host = "127.0.0.1"
@@ -115,6 +116,11 @@ class OSCManager:
             # 可以通过关闭transport来停止
             logger.info("[OSC] OSC服务器停止（如需要可实现）")
             self._server = None
+
+    def set_line_breaks_enabled(self, enabled: bool):
+        """设置是否启用分行逻辑。"""
+        self._line_breaks_enabled = bool(enabled)
+        logger.info(f"[OSC] 分行逻辑已{'启用' if self._line_breaks_enabled else '禁用'}")
     
     def _truncate_text(self, text: str, max_length: int = 144) -> str:
         """
@@ -233,9 +239,24 @@ class OSCManager:
 
         text = text.replace("\r\n", "\n").replace("\r", "\n")
 
-        split_res = self._split_confirmed_unconfirmed(text)
+        # 保护方括号内的未确认内容，避免在其中插入换行
+        bracketed_segments: list[str] = []
+
+        def _bracket_replacer(match: re.Match) -> str:
+            content = match.group(0)
+            # 折叠内部空白，确保未确认部分保持单行
+            content = re.sub(r"\s+", " ", content).strip()
+            bracketed_segments.append(content)
+            return f"__BRACKETED_{len(bracketed_segments) - 1}__"
+
+        protected_text = re.sub(r"\[[^\]]*\]", _bracket_replacer, text)
+
+        split_res = self._split_confirmed_unconfirmed(protected_text)
         if split_res is None:
-            return self._insert_newlines_after_sentence_enders(text)
+            formatted = self._insert_newlines_after_sentence_enders(protected_text)
+            for idx, content in enumerate(bracketed_segments):
+                formatted = formatted.replace(f"__BRACKETED_{idx}__", content)
+            return formatted
 
         confirmed, delim, unconfirmed = split_res
 
@@ -250,10 +271,16 @@ class OSCManager:
 
         if not unconfirmed_single_line:
             # 极端情况：没有未确认内容，视为普通文本
-            return confirmed_formatted
+            formatted = confirmed_formatted
+            for idx, content in enumerate(bracketed_segments):
+                formatted = formatted.replace(f"__BRACKETED_{idx}__", content)
+            return formatted
 
         # 这里明确只插入一个换行，用作“未确认单独一行”
-        return f"{confirmed_formatted}{delim}\n{unconfirmed_single_line}"
+        formatted = f"{confirmed_formatted}{delim}\n{unconfirmed_single_line}"
+        for idx, content in enumerate(bracketed_segments):
+            formatted = formatted.replace(f"__BRACKETED_{idx}__", content)
+        return formatted
     
     async def send_text(self, text: str, ongoing: bool, enabled: bool = True):
         """
@@ -267,9 +294,10 @@ class OSCManager:
         if not enabled:
             return
 
-        # 发送前格式化：句末换行 + 未确认单独一行 + 省略号贴到确认句末
-        # （并将换行符长度计入后续裁剪）
-        text = self._format_text_for_chatbox(text)
+        if self._line_breaks_enabled:
+            # 发送前格式化：句末换行 + 未确认单独一行 + 省略号贴到确认句末
+            # （并将换行符长度计入后续裁剪）
+            text = self._format_text_for_chatbox(text)
 
         # 截断过长的文本（包含换行符在内的总长度限制）
         text = self._truncate_text(text, max_length=MAX_LENGTH)
