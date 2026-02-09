@@ -86,7 +86,7 @@ class WebTranslateClient:
             print(f"[WebTranslateClient] 暂停处理语音数据")
             
             # 发送1秒的空白音频表示语音结束
-            await self._send_silence(duration_seconds=3.0)
+            await self._send_silence(duration_seconds=2.0)
 
     def resume_audio_processing(self):
         """恢复处理语音数据"""
