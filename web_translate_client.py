@@ -9,6 +9,8 @@ from osc_manager import osc_manager
 
 class WebTranslateClient:
     """专门用于Web环境的翻译客户端，不依赖pyaudio"""
+
+    DEBOUNCE_SECONDS = 0.05
     
     def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True, osc_mute_control: bool = True, send_to_osc: bool = True):
         if not api_key:
@@ -41,6 +43,36 @@ class WebTranslateClient:
         
         # 翻译耗时统计
         self.translation_start_time = None
+
+        # 文本消抖
+        self._debounce_task = None
+        self._pending_text = None
+        self._pending_ongoing = None
+
+    async def _debounced_emit_text(self, text: str, ongoing: bool):
+        """消抖后输出文本。"""
+        self._pending_text = text
+        self._pending_ongoing = ongoing
+
+        if self._debounce_task and not self._debounce_task.done():
+            self._debounce_task.cancel()
+
+        async def _runner():
+            try:
+                await asyncio.sleep(self.DEBOUNCE_SECONDS)
+                final_text = self._pending_text
+                final_ongoing = self._pending_ongoing
+                if not final_text:
+                    return
+
+                import time
+                timestamp = time.strftime("%H:%M:%S")
+                print(f"[{timestamp}] {final_text}")
+                await self.send_osc_text(final_text, final_ongoing)
+            except asyncio.CancelledError:
+                return
+
+        self._debounce_task = asyncio.create_task(_runner())
 
     async def pause_audio_processing(self):
         """暂停处理语音数据"""
@@ -268,18 +300,24 @@ class WebTranslateClient:
                 if event_type == "response.audio_transcript.delta":
                     text = event.get("transcript", "")
                     pass # print(f"[{timestamp}] 接收到翻译文本片段: '{text}'")
-                    if text and on_text_received:
-                        on_text_received(text)
+                    if text:
+                        await self._debounced_emit_text(text, True)
+                        if on_text_received:
+                            on_text_received(text)
                 elif event_type == "response.text.delta":
                     text = event.get("delta", "")
                     pass # print(f"[{timestamp}] 接收到文本delta: '{text}'")
-                    if text and on_text_received:
-                        on_text_received(text)
+                    if text:
+                        await self._debounced_emit_text(text, True)
+                        if on_text_received:
+                            on_text_received(text)
                 elif event_type == "response.output_text.delta":
                     text = event.get("delta", "")
                     pass # print(f"[{timestamp}] 接收到output_text delta: '{text}'")
-                    if text and on_text_received:
-                        on_text_received(text)
+                    if text:
+                        await self._debounced_emit_text(text, True)
+                        if on_text_received:
+                            on_text_received(text)
                 
                 elif event_type == "response.audio.delta" and self.audio_enabled:
                     audio_b64 = event.get("delta", "")
@@ -304,7 +342,7 @@ class WebTranslateClient:
                     pass # print(f"[{timestamp}] 翻译文本完成。")
                     text = event.get("transcript", "")
                     if text:
-                        print(f"[{timestamp}] audio_transcript 完整翻译文本: {text}")
+                        await self._debounced_emit_text(text, False)
                         if on_text_received:
                             on_text_received(text)
                         
@@ -312,8 +350,7 @@ class WebTranslateClient:
                     pass # print(f"[{timestamp}] 翻译文本完成。")
                     text = event.get("text", "")
                     if text:
-                        print(f"[{timestamp}] {text}")
-                        await self.send_osc_text(text, False)  # 发送到OSC                            
+                        await self._debounced_emit_text(text, False)
                         if on_text_received:
                             on_text_received(text)
                 # 删除重复分支：已在上方统一处理 response.audio_transcript.done
@@ -335,8 +372,7 @@ class WebTranslateClient:
                         else:
                             result += f" ... [{event['stash']}]"
 
-                        print(f"[{timestamp}] {result}")
-                        await self.send_osc_text(result, True)  # 发送到OSC                            
+                        await self._debounced_emit_text(result, True)
                             
         except websockets.exceptions.ConnectionClosed as e:
             pass # print(f"[WARNING] 连接已关闭: {e}")
