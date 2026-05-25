@@ -10,7 +10,14 @@ from osc_manager import osc_manager
 class WebTranslateClient:
     """专门用于Web环境的翻译客户端，不依赖pyaudio"""
 
+    MODEL_NAME = "qwen3.5-livetranslate-flash-realtime"
+    API_URL_TEMPLATE = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model={model}"
     DEBOUNCE_SECONDS = 0.05
+    AUDIO_OUTPUT_LANGUAGES = {
+        "zh", "en", "ar", "de", "fr", "es", "pt", "id", "it", "ko",
+        "ru", "th", "vi", "ja", "tr", "hi", "ms", "nl", "ur", "nb",
+        "sv", "da", "he", "fi", "pl", "is", "cs", "fil", "fa",
+    }
     
     def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True, osc_mute_control: bool = True, send_to_osc: bool = True):
         if not api_key:
@@ -18,10 +25,10 @@ class WebTranslateClient:
             
         self.api_key = api_key
         self.target_language = target_language
-        self.audio_enabled = audio_enabled
-        self.voice = voice if audio_enabled else "Cherry"
+        self.audio_enabled = audio_enabled and self._supports_audio_output(target_language)
+        self.voice = voice if self.audio_enabled else "Cherry"
         self.ws = None
-        self.api_url = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model=qwen3-livetranslate-flash-realtime"
+        self.api_url = self.API_URL_TEMPLATE.format(model=self.MODEL_NAME)
         
         # 音频配置（仅用于配置，不需要pyaudio）
         self.input_rate = 16000
@@ -48,6 +55,27 @@ class WebTranslateClient:
         self._debounce_task = None
         self._pending_text = None
         self._pending_ongoing = None
+
+    def _supports_audio_output(self, language: str) -> bool:
+        return language in self.AUDIO_OUTPUT_LANGUAGES
+
+    def _build_session_config(self) -> dict:
+        audio_enabled = self.audio_enabled and self._supports_audio_output(self.target_language)
+        modalities = ["text", "audio"] if audio_enabled else ["text"]
+
+        session = {
+            "modalities": modalities,
+            "input_audio_format": "pcm",
+            "output_audio_format": "pcm",
+            "translation": {
+                "language": self.target_language
+            }
+        }
+
+        if audio_enabled and self.voice:
+            session["voice"] = self.voice
+
+        return session
 
     async def _debounced_emit_text(self, text: str, ongoing: bool):
         """消抖后输出文本。"""
@@ -181,18 +209,7 @@ class WebTranslateClient:
         config = {
             "event_id": f"event_{int(time.time() * 1000)}",
             "type": "session.update",
-            "session": {
-                # 'modalities' 控制输出类型。
-                # ["text", "audio"]: 同时返回翻译文本和合成音频（推荐）。
-                # ["text"]: 仅返回翻译文本。
-                "modalities": ["text", "audio"] if self.audio_enabled else ["text"],
-                **({"voice": self.voice} if self.audio_enabled and self.voice else {}),
-                "input_audio_format": "pcm16",
-                "output_audio_format": "pcm16",
-                "translation": {
-                    "language": self.target_language
-                }
-            }
+            "session": self._build_session_config()
         }
         pass # print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
         await self.ws.send(json.dumps(config))
@@ -204,20 +221,14 @@ class WebTranslateClient:
         if voice is not None:
             self.voice = voice
         if audio_enabled is not None:
-            self.audio_enabled = audio_enabled
+            self.audio_enabled = audio_enabled and self._supports_audio_output(self.target_language)
+        elif not self._supports_audio_output(self.target_language):
+            self.audio_enabled = False
 
         config = {
             "event_id": f"event_{int(time.time() * 1000)}",
             "type": "session.update",
-            "session": {
-                "modalities": ["text", "audio"] if self.audio_enabled else ["text"],
-                **({"voice": self.voice} if self.audio_enabled and self.voice else {}),
-                "input_audio_format": "pcm16",
-                "output_audio_format": "pcm16",
-                "translation": {
-                    "language": self.target_language
-                }
-            }
+            "session": self._build_session_config()
         }
         pass # print(f"[update_session] 发送会话更新: {json.dumps(config, indent=2, ensure_ascii=False)}")
         await self.ws.send(json.dumps(config))
@@ -255,7 +266,7 @@ class WebTranslateClient:
         3. 数据须使用 Base64 编码。
         4. 建议发送频率: 2 张/秒。
         5. 先发送音频，再发送图像。
-        6. 成对使用 input_audio_buffer.commit 提交视频缓冲区。
+        6. qwen3.5-livetranslate-flash-realtime 会结合最近的图像帧辅助音频翻译。
         """
 
         if not self.is_connected:

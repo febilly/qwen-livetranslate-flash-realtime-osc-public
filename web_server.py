@@ -359,7 +359,7 @@ async def websocket_endpoint(websocket: WebSocket,
 def run_server():
     """启动服务器"""
     logger.info("启动HTTP服务器...")
-    uvicorn.run(app, host="0.0.0.0", port=19023, log_level="info")
+    uvicorn.run(app, host="0.0.0.0", port=9023, log_level="info")
 
 if __name__ == "__main__":
     run_server()

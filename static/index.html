@@ -308,7 +308,7 @@
 <body>
     <div class="header">
         <h1>🎤 实时语音翻译</h1>
-        <p>基于通义千问 qwen3-livetranslate-flash-realtime 的视频语音翻译服务</p>
+        <p>基于通义千问 qwen3.5-livetranslate-flash-realtime 的视频语音翻译服务</p>
     </div>
 
     <div class="main-container">
@@ -356,24 +356,66 @@
                 <div class="form-group">
                     <label for="targetLanguage">目标语言</label>
                     <select id="targetLanguage">
-                        <option value="en">英语 (音频+文本)</option>
                         <option value="zh">中文 (音频+文本)</option>
-                        <option value="ru">俄语 (音频+文本)</option>
-                        <option value="fr">法语 (音频+文本)</option>
+                        <option value="en">英语 (音频+文本)</option>
+                        <option value="ar">阿拉伯语 (音频+文本)</option>
                         <option value="de">德语 (音频+文本)</option>
-                        <option value="pt">葡萄牙语 (音频+文本)</option>
+                        <option value="fr">法语 (音频+文本)</option>
                         <option value="es">西班牙语 (音频+文本)</option>
+                        <option value="pt">葡萄牙语 (音频+文本)</option>
+                        <option value="id">印度尼西亚语 (音频+文本)</option>
                         <option value="it">意大利语 (音频+文本)</option>
                         <option value="ko">韩语 (音频+文本)</option>
+                        <option value="ru">俄语 (音频+文本)</option>
+                        <option value="th">泰语 (音频+文本)</option>
+                        <option value="vi">越南语 (音频+文本)</option>
                         <option value="ja" selected>日语 (音频+文本)</option>
-                        <option value="yue">粤语 (音频+文本)</option>
-                        <option value="id">印尼语 (仅文本)</option>
-                        <option value="vi">越南语 (仅文本)</option>
-                        <option value="th">泰语 (仅文本)</option>
-                        <option value="ar">阿拉伯语 (仅文本)</option>
-                        <option value="hi">印地语 (仅文本)</option>
+                        <option value="tr">土耳其语 (音频+文本)</option>
+                        <option value="hi">印地语 (音频+文本)</option>
+                        <option value="ms">马来语 (音频+文本)</option>
+                        <option value="nl">荷兰语 (音频+文本)</option>
+                        <option value="ur">乌尔都语 (音频+文本)</option>
+                        <option value="nb">挪威语 (音频+文本)</option>
+                        <option value="sv">瑞典语 (音频+文本)</option>
+                        <option value="da">丹麦语 (音频+文本)</option>
+                        <option value="he">希伯来语 (音频+文本)</option>
+                        <option value="fi">芬兰语 (音频+文本)</option>
+                        <option value="pl">波兰语 (音频+文本)</option>
+                        <option value="is">冰岛语 (音频+文本)</option>
+                        <option value="cs">捷克语 (音频+文本)</option>
+                        <option value="fil">菲律宾语 (音频+文本)</option>
+                        <option value="fa">波斯语 (音频+文本)</option>
+                        <option value="yue">粤语 (仅文本)</option>
                         <option value="el">希腊语 (仅文本)</option>
-                        <option value="tr">土耳其语 (仅文本)</option>
+                        <option value="af">南非荷兰语 (仅文本)</option>
+                        <option value="ast">阿斯图里亚斯语 (仅文本)</option>
+                        <option value="be">白俄罗斯语 (仅文本)</option>
+                        <option value="bg">保加利亚语 (仅文本)</option>
+                        <option value="bn">孟加拉语 (仅文本)</option>
+                        <option value="bs">波斯尼亚语 (仅文本)</option>
+                        <option value="ca">加泰罗尼亚语 (仅文本)</option>
+                        <option value="ceb">宿务语 (仅文本)</option>
+                        <option value="et">爱沙尼亚语 (仅文本)</option>
+                        <option value="gl">加利西亚语 (仅文本)</option>
+                        <option value="gu">古吉拉特语 (仅文本)</option>
+                        <option value="hr">克罗地亚语 (仅文本)</option>
+                        <option value="hu">匈牙利语 (仅文本)</option>
+                        <option value="jv">爪哇语 (仅文本)</option>
+                        <option value="kk">哈萨克语 (仅文本)</option>
+                        <option value="kn">卡纳达语 (仅文本)</option>
+                        <option value="ky">柯尔克孜语 (仅文本)</option>
+                        <option value="lv">拉脱维亚语 (仅文本)</option>
+                        <option value="mk">马其顿语 (仅文本)</option>
+                        <option value="ml">马拉雅拉姆语 (仅文本)</option>
+                        <option value="mr">马拉地语 (仅文本)</option>
+                        <option value="pa">旁遮普语 (仅文本)</option>
+                        <option value="ro">罗马尼亚语 (仅文本)</option>
+                        <option value="sk">斯洛伐克语 (仅文本)</option>
+                        <option value="sl">斯洛文尼亚语 (仅文本)</option>
+                        <option value="sw">斯瓦希里语 (仅文本)</option>
+                        <option value="tg">塔吉克语 (仅文本)</option>
+                        <option value="az">阿塞拜疆语 (仅文本)</option>
+                        <option value="uk">乌克兰语 (仅文本)</option>
                     </select>
                 </div>
 
@@ -452,9 +494,15 @@
                 this.playbackAudioContext = null;
                 this.playbackQueue = [];
                 this.isAudioPlaying = false;
+                this.audioOutputLanguages = new Set([
+                    'zh', 'en', 'ar', 'de', 'fr', 'es', 'pt', 'id', 'it', 'ko',
+                    'ru', 'th', 'vi', 'ja', 'tr', 'hi', 'ms', 'nl', 'ur', 'nb',
+                    'sv', 'da', 'he', 'fi', 'pl', 'is', 'cs', 'fil', 'fa'
+                ]);
                 
                 this.initElements();
                 this.bindEvents();
+                this.updateLanguageCapabilities();
                 this.enumerateAudioDevices();
                 this.requestUserMedia();
             }
@@ -488,11 +536,35 @@
                 this.startBtn.onclick = () => this.startTranslation();
                 this.stopBtn.onclick = () => this.stopTranslation();
                 this.cameraEnabled.onchange = () => this.toggleCamera();
-                this.targetLanguage.onchange = () => this.restartSession();
+                this.targetLanguage.onchange = () => {
+                    this.updateLanguageCapabilities();
+                    this.restartSession();
+                };
                 this.voiceSelect.onchange = () => this.restartSession();
-                this.audioEnabled.onchange = () => this.pushSessionUpdate();
+                this.audioEnabled.onchange = () => {
+                    this.updateLanguageCapabilities();
+                    this.pushSessionUpdate();
+                };
                 this.lineBreaksEnabled.onchange = () => this.pushFormatUpdate();
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
+            }
+
+            isAudioOutputLanguage() {
+                return this.audioOutputLanguages.has(this.targetLanguage.value);
+            }
+
+            getAudioOutputEnabled() {
+                return this.audioEnabled.checked && this.isAudioOutputLanguage();
+            }
+
+            updateLanguageCapabilities() {
+                const supportsAudio = this.isAudioOutputLanguage();
+                if (!supportsAudio) {
+                    this.audioEnabled.checked = false;
+                }
+                this.audioEnabled.disabled = !supportsAudio;
+                this.audioEnabled.title = supportsAudio ? '' : '该目标语言仅支持文本输出';
+                this.voiceSelect.disabled = !this.getAudioOutputEnabled();
             }
 
             async requestUserMedia() {
@@ -704,7 +776,7 @@
                     wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     wsUrl.searchParams.set('target_language', this.targetLanguage.value);
                     wsUrl.searchParams.set('voice', this.voiceSelect.value);
-                    wsUrl.searchParams.set('audio_enabled', this.audioEnabled.checked);
+                    wsUrl.searchParams.set('audio_enabled', this.getAudioOutputEnabled());
                     wsUrl.searchParams.set('osc_mute_control', this.oscMuteControl.checked);
                     wsUrl.searchParams.set('send_to_osc', this.sendToOsc.checked);
                     wsUrl.searchParams.set('line_breaks_enabled', this.lineBreaksEnabled.checked);
@@ -811,7 +883,7 @@
                     type: 'session.update',
                     target_language: this.targetLanguage.value,
                     voice: this.voiceSelect.value,
-                    audio_enabled: this.audioEnabled.checked
+                    audio_enabled: this.getAudioOutputEnabled()
                 };
                 // 去重：相同配置不重复下发，避免打断当前TTS
                 const key = JSON.stringify(payload);
@@ -849,7 +921,7 @@
             }
 
             startRecording() {
-                // 优先使用基于WebAudio的PCM16采集，保证与服务端/模型的pcm16协议一致
+                // 优先使用基于WebAudio的PCM 16-bit 原始音频采集，保证与服务端协议一致
                 try {
                     this.startPcmCapture();
                     return;

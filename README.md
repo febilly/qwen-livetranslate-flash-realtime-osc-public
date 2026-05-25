@@ -6,6 +6,8 @@
 
 这个是基于阿里云给的demo改出来的，用于把千问实时同传的翻译结果，通过osc发送到VRChat中。
 
+当前使用模型：`qwen3.5-livetranslate-flash-realtime`。它支持音频与摄像头图像输入，目标语种覆盖 60 种，其中 29 种支持音频+文本输出，其余语种仅支持文本输出。
+
 请确保VRChat已经开启了OSC接收功能。
 请把设置`DASHSCOPE_API_KEY`为你的API Key。本程序同时也支持从`.env`文件中读取环境变量。
 
