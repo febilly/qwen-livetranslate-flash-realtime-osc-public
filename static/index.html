@@ -327,6 +327,9 @@
             font-size: 1.05rem;
             font-weight: 700;
             touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
         }
 
         .push-talk-button.active {
@@ -379,7 +382,7 @@
                     <label for="targetLanguage" data-i18n="targetLanguage">目标语言</label>
                     <select id="targetLanguage">
                         <option value="zh">中文 (音频+文本)</option>
-                        <option value="en">英语 (音频+文本)</option>
+                        <option value="en" selected>英语 (音频+文本)</option>
                         <option value="ar">阿拉伯语 (音频+文本)</option>
                         <option value="de">德语 (音频+文本)</option>
                         <option value="fr">法语 (音频+文本)</option>
@@ -391,7 +394,7 @@
                         <option value="ru">俄语 (音频+文本)</option>
                         <option value="th">泰语 (音频+文本)</option>
                         <option value="vi">越南语 (音频+文本)</option>
-                        <option value="ja" selected>日语 (音频+文本)</option>
+                        <option value="ja">日语 (音频+文本)</option>
                         <option value="tr">土耳其语 (音频+文本)</option>
                         <option value="hi">印地语 (音频+文本)</option>
                         <option value="ms">马来语 (音频+文本)</option>
@@ -444,7 +447,7 @@
                 <div class="form-group">
                     <label for="voiceSelect" data-i18n="voiceSelect">语音音色</label>
                     <select id="voiceSelect">
-                        <option value="Tina" selected>甜甜 Tina [默认]</option>
+                        <option value="Tina">甜甜 Tina</option>
                         <option value="Cindy">林欣宜 Cindy</option>
                         <option value="Liora Mira">清欢 Liora Mira</option>
                         <option value="Sunnybobi">知芝 Sunnybobi</option>
@@ -482,7 +485,7 @@
                         <option value="Arda">阿尔达 Arda</option>
                         <option value="Hana">阿幸 Hana</option>
                         <option value="Dolce">多尔切 Dolce</option>
-                        <option value="Jakub">雅克 Jakub</option>
+                        <option value="Jakub" selected>雅克 Jakub [默认]</option>
                         <option value="Griet">海娜 Griet</option>
                         <option value="Eliška">艾莉卡 Eliška</option>
                         <option value="Marina">玛丽娜 Marina</option>
@@ -682,6 +685,8 @@
                 this.isPushTalkActive = false;
                 this.storageKeyApiKey = 'dashscope_api_key';
                 this.storageKeyUiLanguage = 'ui_language';
+                this.storageKeySettings = 'livetranslate_settings';
+                this.savedSettings = this.loadSavedSettings();
                 this.currentUiLanguage = this.getInitialUiLanguage();
                 this.audioOutputLanguages = new Set([
                     'zh', 'en', 'ar', 'de', 'fr', 'es', 'pt', 'id', 'it', 'ko',
@@ -716,6 +721,7 @@
 
                 this.apiKeyInput.value = localStorage.getItem(this.storageKeyApiKey) || '';
                 this.uiLanguageSelect.value = this.currentUiLanguage;
+                this.applySavedSettings();
                 
                 // 创建音频可视化条
                 for (let i = 0; i < 32; i++) {
@@ -730,12 +736,24 @@
                 this.stopBtn.onclick = () => this.stopTranslation();
                 this.targetLanguage.onchange = () => {
                     this.updateLanguageCapabilities();
+                    this.saveSettings();
                     this.restartSession();
                 };
-                this.voiceSelect.onchange = () => this.restartSession();
+                this.voiceSelect.onchange = () => {
+                    this.saveSettings();
+                    this.restartSession();
+                };
                 this.audioEnabled.onchange = () => {
+                    this.saveSettings();
                     this.updateLanguageCapabilities();
                     this.pushSessionUpdate();
+                };
+                this.leftChannelOnly.onchange = () => this.saveSettings();
+                this.disableEchoCancellation.onchange = async () => {
+                    this.saveSettings();
+                    if (this.audioStream) {
+                        await this.changeMicrophone();
+                    }
                 };
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
                 this.apiKeyInput.oninput = () => {
@@ -754,6 +772,60 @@
                     if (this.isPushTalkActive) this.stopPushToTalk();
                 });
                 this.updatePushTalkButton();
+            }
+
+            loadSavedSettings() {
+                try {
+                    const raw = localStorage.getItem(this.storageKeySettings);
+                    if (!raw) return {};
+                    const parsed = JSON.parse(raw);
+                    return parsed && typeof parsed === 'object' ? parsed : {};
+                } catch (error) {
+                    console.warn('Failed to load saved settings:', error);
+                    return {};
+                }
+            }
+
+            applySavedSettings() {
+                const settings = this.savedSettings || {};
+                if (settings.targetLanguage && Array.from(this.targetLanguage.options).some((option) => option.value === settings.targetLanguage)) {
+                    this.targetLanguage.value = settings.targetLanguage;
+                }
+                if (settings.voice && Array.from(this.voiceSelect.options).some((option) => option.value === settings.voice)) {
+                    this.voiceSelect.value = settings.voice;
+                }
+                if (typeof settings.audioEnabled === 'boolean') {
+                    this.audioEnabled.checked = settings.audioEnabled;
+                }
+                if (typeof settings.leftChannelOnly === 'boolean') {
+                    this.leftChannelOnly.checked = settings.leftChannelOnly;
+                }
+                if (typeof settings.disableEchoCancellation === 'boolean') {
+                    this.disableEchoCancellation.checked = settings.disableEchoCancellation;
+                }
+                if (settings.micMode) {
+                    const selectedMode = this.micModeRadios.find((radio) => radio.value === settings.micMode);
+                    if (selectedMode) selectedMode.checked = true;
+                }
+                if (settings.microphoneId) {
+                    this.selectedMicrophoneId = settings.microphoneId;
+                }
+            }
+
+            getSettingsSnapshot() {
+                return {
+                    targetLanguage: this.targetLanguage.value,
+                    voice: this.voiceSelect.value,
+                    audioEnabled: this.audioEnabled.checked,
+                    leftChannelOnly: this.leftChannelOnly.checked,
+                    disableEchoCancellation: this.disableEchoCancellation.checked,
+                    micMode: this.getMicMode(),
+                    microphoneId: this.selectedMicrophoneId || ''
+                };
+            }
+
+            saveSettings() {
+                localStorage.setItem(this.storageKeySettings, JSON.stringify(this.getSettingsSnapshot()));
             }
 
             getInitialUiLanguage() {
@@ -850,7 +922,7 @@
                     } else if (option.value === '__clone_always') {
                         option.textContent = this.t('cloneAlways');
                     } else {
-                        option.textContent = option.value === 'Tina'
+                        option.textContent = option.value === 'Jakub'
                             ? `${option.value} [${this.t('defaultVoice')}]`
                             : option.value;
                     }
@@ -894,6 +966,7 @@
 
             async handleMicModeChange() {
                 this.isPushTalkActive = false;
+                this.saveSettings();
                 this.updatePushTalkButton();
                 if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
                 await this.setAudioProcessing(this.getMicMode() === 'always_on');
@@ -982,6 +1055,7 @@
                         // 保存当前使用的设备ID（系统默认麦克风）
                         if (settings.deviceId) {
                             this.selectedMicrophoneId = settings.deviceId;
+                            this.saveSettings();
                             console.log(`[${timestamp}] 系统默认麦克风设备ID: ${settings.deviceId}`);
                         }
                     } else {
@@ -1043,6 +1117,7 @@
                 if (!selectedDeviceId) return;
                 
                 this.selectedMicrophoneId = selectedDeviceId;
+                this.saveSettings();
                 const timestamp = new Date().toLocaleTimeString();
                 console.log(`[${timestamp}] 切换麦克风: ${selectedDeviceId}`);
                 
