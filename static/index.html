@@ -269,12 +269,8 @@
 
         @media (min-width: 900px) {
             .main-container {
-                max-width: 1120px;
-                display: grid;
-                grid-template-columns: minmax(280px, 0.85fr) minmax(420px, 1.15fr);
-                align-items: start;
+                max-width: 760px;
                 padding: 20px;
-                gap: 20px;
             }
         }
 
@@ -369,42 +365,8 @@
     </div>
 
     <div class="main-container">
-        <div class="control-panel">
-            <div class="panel-title" data-i18n="microphonePanel">🎤 麦克风</div>
-            <div class="form-group">
-                <label for="microphoneSelect" data-i18n="microphoneSelect">选择麦克风设备</label>
-                <select id="microphoneSelect">
-                    <option value="" data-i18n="loading">加载中...</option>
-                </select>
-            </div>
-
-            <div class="radio-group">
-                <label class="radio-option">
-                    <input type="radio" name="micMode" value="always_on" checked>
-                    <span data-i18n="alwaysOnMic">常开麦</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="micMode" value="push_to_talk">
-                    <span data-i18n="pushToTalkMic">按键麦</span>
-                </label>
-            </div>
-
-            <button class="push-talk-button" id="pushTalkBtn" disabled data-i18n="holdToTalk">按住说话</button>
-
-            <div class="audio-visualizer">
-                <div class="audio-bars" id="audioBars">
-                    <!-- 音频条将动态生成 -->
-                </div>
-            </div>
-        </div>
-
         <!-- 控制面板 -->
         <div class="controls-section">
-            <div class="connection-status disconnected" id="connectionStatus">
-                <span class="status-indicator disconnected"></span>
-                <span data-i18n="disconnected">未连接</span>
-            </div>
-
             <div class="control-panel">
                 <div class="panel-title" data-i18n="settingsPanel">⚙️ 配置设置</div>
 
@@ -553,6 +515,40 @@
                     <button class="btn btn-primary" id="startBtn" data-i18n="startTranslation">开始翻译</button>
                     <button class="btn btn-danger" id="stopBtn" disabled data-i18n="stopTranslation">停止翻译</button>
                 </div>
+            </div>
+
+            <div class="control-panel">
+                <div class="panel-title" data-i18n="microphonePanel">🎤 麦克风</div>
+                <div class="form-group">
+                    <label for="microphoneSelect" data-i18n="microphoneSelect">选择麦克风设备</label>
+                    <select id="microphoneSelect">
+                        <option value="" data-i18n="loading">加载中...</option>
+                    </select>
+                </div>
+
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="micMode" value="always_on" checked>
+                        <span data-i18n="alwaysOnMic">常开麦</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="micMode" value="push_to_talk">
+                        <span data-i18n="pushToTalkMic">按键麦</span>
+                    </label>
+                </div>
+
+                <button class="push-talk-button" id="pushTalkBtn" disabled data-i18n="holdToTalk">按住说话</button>
+
+                <div class="audio-visualizer">
+                    <div class="audio-bars" id="audioBars">
+                        <!-- 音频条将动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="connection-status disconnected" id="connectionStatus">
+                <span class="status-indicator disconnected"></span>
+                <span data-i18n="disconnected">未连接</span>
             </div>
 
             <div class="translation-display">
