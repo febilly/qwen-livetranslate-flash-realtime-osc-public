@@ -1,4 +1,3 @@
-import os
 import time
 import base64
 import asyncio
@@ -7,7 +6,7 @@ import websockets
 import traceback
 
 class WebTranslateClient:
-    """专门用于Web环境的翻译客户端，不依赖pyaudio"""
+    """专门用于Web环境的翻译客户端，不依赖本地音频库"""
 
     MODEL_NAME = "qwen3.5-livetranslate-flash-realtime"
     API_URL_TEMPLATE = "wss://dashscope.aliyuncs.com/api-ws/v1/realtime?model={model}"
@@ -44,7 +43,7 @@ class WebTranslateClient:
         self.ws = None
         self.api_url = self.API_URL_TEMPLATE.format(model=self.MODEL_NAME)
         
-        # 音频配置（仅用于配置，不需要pyaudio）
+        # 音频配置（仅用于配置）
         self.input_rate = 16000
         self.input_channels = 1
         self.output_rate = 24000

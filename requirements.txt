@@ -3,5 +3,5 @@ starlette>=0.37,<1.0
 uvicorn>=0.24,<1.0
 
 # Client WebSocket to DashScope realtime API
-websockets
+websockets>=14,<17
 

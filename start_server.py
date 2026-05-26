@@ -24,6 +24,7 @@ def main():
     print("✅ 所有检查通过")
     print("\n🌐 启动Web服务器...")
     print("访问地址: http://localhost:9023")
+    print("手机本机/Termux 推荐访问: http://127.0.0.1:9023")
     print("按 Ctrl+C 停止服务器")
     print("-" * 50)
     
