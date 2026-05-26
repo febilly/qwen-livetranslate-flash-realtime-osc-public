@@ -6,8 +6,10 @@ import time
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse
+from starlette.applications import Starlette
+from starlette.responses import HTMLResponse
+from starlette.routing import Route, WebSocketRoute
+from starlette.websockets import WebSocket
 
 from web_translate_client import WebTranslateClient
 
@@ -16,8 +18,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 logger.setLevel(logging.ERROR)  # 设置为ERROR以减少日志输出
-
-app = FastAPI()
 
 
 def _resource_path(*parts: str) -> Path:
@@ -129,8 +129,7 @@ async def receive_start_config(websocket: WebSocket) -> dict:
     return payload
 
 
-@app.get("/")
-async def get():
+async def get(request):
     try:
         index_path = _resource_path("static", "index.html")
         with open(index_path, "r", encoding="utf-8") as f:
@@ -140,7 +139,6 @@ async def get():
         return HTMLResponse("<h1>服务器错误</h1>", status_code=500)
 
 
-@app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     logger.info("WebSocket连接已建立，等待前端配置")
@@ -307,6 +305,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 pass
 
         logger.info("清理完成，连接已关闭")
+
+
+app = Starlette(routes=[
+    Route("/", get),
+    WebSocketRoute("/ws", websocket_endpoint),
+])
 
 
 def run_server():

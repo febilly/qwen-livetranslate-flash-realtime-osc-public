@@ -4,7 +4,7 @@ block_cipher = None
 
 # 单文件（onefile）打包入口：start_server.py
 # 说明：
-# - 资源文件：打包 static/ 目录（用于 FastAPI 返回的 index.html）
+# - 资源文件：打包 static/ 目录（用于返回 index.html）
 # - 控制台程序：console=True，便于看到日志/报错
 # - exe 名称：QwenLiveTranslate（可按需改名）
 
