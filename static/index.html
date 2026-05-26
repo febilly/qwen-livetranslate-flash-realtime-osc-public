@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f4f7fb;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -21,96 +21,61 @@
         }
 
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 20px;
+            background: #ffffff;
+            padding: 16px;
             text-align: center;
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid #dfe7f1;
         }
 
         .header h1 {
             color: #2c3e50;
-            margin-bottom: 10px;
-            font-size: 2rem;
+            margin-bottom: 6px;
+            font-size: 1.5rem;
         }
 
         .header p {
             color: #7f8c8d;
-            font-size: 1.1rem;
+            font-size: 0.95rem;
         }
 
         .main-container {
             flex: 1;
             display: flex;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
+            flex-direction: column;
+            gap: 12px;
+            padding: 12px;
+            max-width: 760px;
             margin: 0 auto;
             width: 100%;
         }
 
-        .video-section {
-            flex: 1;
-            min-width: 300px;
-        }
-
-        .video-container {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            margin-bottom: 20px;
-        }
-
-        .video-header {
-            background: #3498db;
-            color: white;
-            padding: 15px 20px;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        #videoElement {
-            width: 100%;
-            height: 300px;
-            object-fit: cover;
-            background: #000;
-        }
-
         .controls-section {
             flex: 1;
-            min-width: 400px;
+            min-width: 0;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
         }
 
         .control-panel {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .video-section .control-panel {
-            margin-bottom: 20px;
-        }
-
-        .video-section .control-panel:last-child {
-            margin-bottom: 0;
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #dfe7f1;
+            box-shadow: 0 8px 24px rgba(35, 50, 70, 0.08);
         }
 
         .panel-title {
-            font-size: 1.3rem;
+            font-size: 1.05rem;
             font-weight: 600;
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             padding-bottom: 10px;
             border-bottom: 2px solid #3498db;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .form-group label {
@@ -138,7 +103,7 @@
 
         .button-group {
             display: flex;
-            gap: 15px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
@@ -150,9 +115,9 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            min-width: 120px;
+            letter-spacing: 0;
+            min-width: 0;
+            flex: 1;
         }
 
         .btn-primary {
@@ -211,13 +176,14 @@
         .translation-display {
             background: white;
             border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 16px;
+            border: 1px solid #dfe7f1;
+            box-shadow: 0 8px 24px rgba(35, 50, 70, 0.08);
             min-height: 200px;
         }
 
         .translation-content {
-            max-height: 300px;
+            max-height: 38vh;
             overflow-y: auto;
             padding: 15px;
             background: #f8f9fa;
@@ -278,12 +244,18 @@
             border: 1px solid #f39c12;
         }
 
-        @media (max-width: 768px) {
+        @media (min-width: 900px) {
             .main-container {
-                flex-direction: column;
-                padding: 10px;
+                max-width: 1120px;
+                display: grid;
+                grid-template-columns: minmax(280px, 0.85fr) minmax(420px, 1.15fr);
+                align-items: start;
+                padding: 20px;
+                gap: 20px;
             }
-            
+        }
+
+        @media (max-width: 768px) {
             .button-group {
                 flex-direction: column;
             }
@@ -296,49 +268,102 @@
         .checkbox-group {
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
         }
 
         .checkbox-group input[type="checkbox"] {
             margin-right: 10px;
             width: auto;
         }
+
+        .radio-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            border: 1px solid #d9e2ec;
+            border-radius: 8px;
+            background: #f8fbff;
+        }
+
+        .radio-option input {
+            width: auto;
+        }
+
+        .push-talk-button {
+            width: 100%;
+            min-height: 64px;
+            margin-bottom: 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #1f7a5a;
+            color: white;
+            font-size: 1.05rem;
+            font-weight: 700;
+            touch-action: none;
+        }
+
+        .push-talk-button.active {
+            background: #d9480f;
+            transform: scale(0.99);
+        }
+
+        .push-talk-button:disabled {
+            opacity: 0.55;
+            transform: none;
+        }
+
+        .settings-row {
+            display: grid;
+            gap: 12px;
+        }
+
+        @media (min-width: 640px) {
+            .settings-row {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>🎤 实时语音翻译</h1>
-        <p>基于通义千问 qwen3.5-livetranslate-flash-realtime 的视频语音翻译服务</p>
+        <p>基于通义千问 qwen3.5-livetranslate-flash-realtime 的语音翻译服务</p>
     </div>
 
     <div class="main-container">
-        <!-- 视频区域 -->
-        <div class="video-section">
-            <div class="video-container">
-                <div class="video-header">
-                    📹 摄像头视频流 (流畅显示，发送2帧/秒)
-                </div>
-                <video id="videoElement" autoplay muted playsinline></video>
+        <div class="control-panel">
+            <div class="panel-title">🎤 麦克风</div>
+            <div class="form-group">
+                <label for="microphoneSelect">选择麦克风设备</label>
+                <select id="microphoneSelect">
+                    <option value="">加载中...</option>
+                </select>
             </div>
-            
-            <!-- 麦克风选择面板 -->
-            <div class="control-panel">
-                <div class="panel-title">🎤 麦克风选择</div>
-                <div class="form-group">
-                    <label for="microphoneSelect">选择麦克风设备</label>
-                    <select id="microphoneSelect">
-                        <option value="">加载中...</option>
-                    </select>
-                </div>
+
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="micMode" value="always_on" checked>
+                    <span>常开麦</span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="micMode" value="push_to_talk">
+                    <span>按键麦</span>
+                </label>
             </div>
-            
-            <!-- 音频可视化 -->
-            <div class="control-panel">
-                <div class="panel-title">🎵 音频可视化</div>
-                <div class="audio-visualizer">
-                    <div class="audio-bars" id="audioBars">
-                        <!-- 音频条将动态生成 -->
-                    </div>
+
+            <button class="push-talk-button" id="pushTalkBtn" disabled>按住说话</button>
+
+            <div class="audio-visualizer">
+                <div class="audio-bars" id="audioBars">
+                    <!-- 音频条将动态生成 -->
                 </div>
             </div>
         </div>
@@ -352,6 +377,11 @@
 
             <div class="control-panel">
                 <div class="panel-title">⚙️ 配置设置</div>
+
+                <div class="form-group">
+                    <label for="apiKeyInput">DashScope API Key</label>
+                    <input type="password" id="apiKeyInput" autocomplete="off" placeholder="sk-...">
+                </div>
                 
                 <div class="form-group">
                     <label for="targetLanguage">目标语言</label>
@@ -480,23 +510,8 @@
                 </div>
 
                 <div class="checkbox-group">
-                    <input type="checkbox" id="cameraEnabled">
-                    <label for="cameraEnabled">启用摄像头</label>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="oscMuteControl" checked>
-                    <label for="oscMuteControl">游戏静音时停止处理语音</label>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="sendToOsc" checked>
-                    <label for="sendToOsc">发送翻译结果到OSC</label>
-                </div>
-
-                <div class="checkbox-group">
-                    <input type="checkbox" id="lineBreaksEnabled">
-                    <label for="lineBreaksEnabled">启用分行显示（句末换行）</label>
+                    <input type="checkbox" id="leftChannelOnly">
+                    <label for="leftChannelOnly">语音输出只在左声道输出</label>
                 </div>
 
                 <div class="checkbox-group">
@@ -525,16 +540,17 @@
                 this.ws = null;
                 this.mediaRecorder = null;
                 this.audioStream = null;
-                this.videoStream = null;
                 this.isRecording = false;
                 this.audioContext = null;
                 this.analyser = null;
                 this.dataArray = null;
                 this.animationId = null;
-                this.videoIntervalId = null;
                 this.playbackAudioContext = null;
                 this.playbackQueue = [];
                 this.isAudioPlaying = false;
+                this.selectedMicrophoneId = null;
+                this.isPushTalkActive = false;
+                this.storageKeyApiKey = 'dashscope_api_key';
                 this.audioOutputLanguages = new Set([
                     'zh', 'en', 'ar', 'de', 'fr', 'es', 'pt', 'id', 'it', 'ko',
                     'ru', 'th', 'vi', 'ja', 'tr', 'hi', 'ms', 'nl', 'ur', 'nb',
@@ -549,21 +565,22 @@
             }
 
             initElements() {
-                this.videoElement = document.getElementById('videoElement');
                 this.startBtn = document.getElementById('startBtn');
                 this.stopBtn = document.getElementById('stopBtn');
                 this.connectionStatus = document.getElementById('connectionStatus');
                 this.translationContent = document.getElementById('translationContent');
+                this.apiKeyInput = document.getElementById('apiKeyInput');
                 this.targetLanguage = document.getElementById('targetLanguage');
                 this.voiceSelect = document.getElementById('voiceSelect');
                 this.audioEnabled = document.getElementById('audioEnabled');
-                this.cameraEnabled = document.getElementById('cameraEnabled');
-                this.oscMuteControl = document.getElementById('oscMuteControl');
-                this.sendToOsc = document.getElementById('sendToOsc');
-                this.lineBreaksEnabled = document.getElementById('lineBreaksEnabled');
+                this.leftChannelOnly = document.getElementById('leftChannelOnly');
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
                 this.audioBars = document.getElementById('audioBars');
                 this.microphoneSelect = document.getElementById('microphoneSelect');
+                this.micModeRadios = Array.from(document.querySelectorAll('input[name="micMode"]'));
+                this.pushTalkBtn = document.getElementById('pushTalkBtn');
+
+                this.apiKeyInput.value = localStorage.getItem(this.storageKeyApiKey) || '';
                 
                 // 创建音频可视化条
                 for (let i = 0; i < 32; i++) {
@@ -576,7 +593,6 @@
             bindEvents() {
                 this.startBtn.onclick = () => this.startTranslation();
                 this.stopBtn.onclick = () => this.stopTranslation();
-                this.cameraEnabled.onchange = () => this.toggleCamera();
                 this.targetLanguage.onchange = () => {
                     this.updateLanguageCapabilities();
                     this.restartSession();
@@ -586,8 +602,20 @@
                     this.updateLanguageCapabilities();
                     this.pushSessionUpdate();
                 };
-                this.lineBreaksEnabled.onchange = () => this.pushFormatUpdate();
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
+                this.apiKeyInput.oninput = () => {
+                    localStorage.setItem(this.storageKeyApiKey, this.apiKeyInput.value.trim());
+                };
+                this.micModeRadios.forEach((radio) => {
+                    radio.onchange = () => this.handleMicModeChange();
+                });
+                this.pushTalkBtn.addEventListener('pointerdown', (event) => this.startPushToTalk(event));
+                this.pushTalkBtn.addEventListener('pointerup', (event) => this.stopPushToTalk(event));
+                this.pushTalkBtn.addEventListener('pointercancel', (event) => this.stopPushToTalk(event));
+                this.pushTalkBtn.addEventListener('lostpointercapture', () => {
+                    if (this.isPushTalkActive) this.stopPushToTalk();
+                });
+                this.updatePushTalkButton();
             }
 
             isAudioOutputLanguage() {
@@ -614,6 +642,54 @@
                 return { voice: this.voiceSelect.value, voice_clone_frequency: '' };
             }
 
+            getMicMode() {
+                return this.micModeRadios.find((radio) => radio.checked)?.value || 'always_on';
+            }
+
+            updatePushTalkButton() {
+                const isPushToTalk = this.getMicMode() === 'push_to_talk';
+                this.pushTalkBtn.disabled = !isPushToTalk || !this.ws || this.ws.readyState !== WebSocket.OPEN;
+                this.pushTalkBtn.textContent = this.isPushTalkActive ? '松开结束' : '按住说话';
+                this.pushTalkBtn.classList.toggle('active', this.isPushTalkActive);
+            }
+
+            async handleMicModeChange() {
+                this.isPushTalkActive = false;
+                this.updatePushTalkButton();
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                await this.setAudioProcessing(this.getMicMode() === 'always_on');
+            }
+
+            async setAudioProcessing(active) {
+                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                this.ws.send(JSON.stringify({
+                    type: 'audio.processing',
+                    active
+                }));
+            }
+
+            async startPushToTalk(event) {
+                if (event) {
+                    event.preventDefault();
+                    try { this.pushTalkBtn.setPointerCapture(event.pointerId); } catch {}
+                }
+                if (this.getMicMode() !== 'push_to_talk' || this.isPushTalkActive) return;
+                this.isPushTalkActive = true;
+                this.updatePushTalkButton();
+                await this.setAudioProcessing(true);
+            }
+
+            async stopPushToTalk(event) {
+                if (event) {
+                    event.preventDefault();
+                    try { this.pushTalkBtn.releasePointerCapture(event.pointerId); } catch {}
+                }
+                if (this.getMicMode() !== 'push_to_talk' || !this.isPushTalkActive) return;
+                this.isPushTalkActive = false;
+                this.updatePushTalkButton();
+                await this.setAudioProcessing(false);
+            }
+
             updateLanguageCapabilities() {
                 const supportsAudio = this.isAudioOutputLanguage();
                 if (!supportsAudio) {
@@ -629,7 +705,7 @@
                     const timestamp = new Date().toLocaleTimeString();
                     console.log(`[${timestamp}] 请求用户媒体权限...`);
                     
-                    // 仅请求麦克风，摄像头按需单独获取
+                    // 仅请求麦克风
                     const echoCancellationEnabled = !this.disableEchoCancellation.checked;
                     console.log(`[${timestamp}] 回声消除设置: ${echoCancellationEnabled ? '启用' : '禁用'}`);
                     
@@ -681,7 +757,7 @@
 
             } catch (error) {
                 console.error('获取用户媒体失败:', error);
-                alert('需要摄像头和麦克风权限才能使用翻译功能');
+                alert('需要麦克风权限才能使用翻译功能');
             }
             }
 
@@ -823,33 +899,35 @@
 
             async startTranslation() {
                 if (!this.audioStream) {
-                    alert('请先允许摄像头和麦克风权限');
+                    alert('请先允许麦克风权限');
+                    return;
+                }
+
+                const apiKey = this.apiKeyInput.value.trim();
+                if (!apiKey) {
+                    alert('请先填写 DashScope API Key');
                     return;
                 }
 
                 try {
-                    // 构建WebSocket URL with parameters
                     const wsUrl = new URL('/ws', window.location);
                     const voiceConfig = this.getVoiceConfig();
                     wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-                    wsUrl.searchParams.set('target_language', this.targetLanguage.value);
-                    wsUrl.searchParams.set('voice', voiceConfig.voice);
-                    wsUrl.searchParams.set('audio_enabled', this.getAudioOutputEnabled());
-                    wsUrl.searchParams.set('voice_clone_frequency', voiceConfig.voice_clone_frequency);
-                    wsUrl.searchParams.set('osc_mute_control', this.oscMuteControl.checked);
-                    wsUrl.searchParams.set('send_to_osc', this.sendToOsc.checked);
-                    wsUrl.searchParams.set('line_breaks_enabled', this.lineBreaksEnabled.checked);
 
                     this.ws = new WebSocket(wsUrl.toString());
                     
                     this.ws.onopen = () => {
                         console.log('WebSocket连接已建立');
-                        this.updateConnectionStatus('connected', '已连接');
-                        this.startRecording();
-                        if (this.cameraEnabled.checked) this.startVideoCapture();
-                        this.startBtn.disabled = true;
-                        this.stopBtn.disabled = false;
-                        // 不在 onopen 立即 push，会与初始 session.update 冲突导致 TTS 重置
+                        localStorage.setItem(this.storageKeyApiKey, apiKey);
+                        this.ws.send(JSON.stringify({
+                            type: 'connection.start',
+                            api_key: apiKey,
+                            target_language: this.targetLanguage.value,
+                            voice: voiceConfig.voice,
+                            audio_enabled: this.getAudioOutputEnabled(),
+                            voice_clone_frequency: voiceConfig.voice_clone_frequency,
+                            mic_mode: this.getMicMode()
+                        }));
                     };
 
                     this.ws.onmessage = (event) => {
@@ -862,13 +940,29 @@
                                 console.log(`[${timestamp}] 收到中断信号`);
                                 return;
                             }
+
+                            if (event.data === 'ping') {
+                                if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                                    this.ws.send('pong');
+                                }
+                                return;
+                            }
                             
                             try {
                                 const message = JSON.parse(event.data);
                                 console.log(`[${timestamp}] 解析JSON消息:`, message);
-                                if (message.type === 'translation_text') {
+                                if (message.type === 'ready') {
+                                    this.updateConnectionStatus('connected', '已连接');
+                                    this.startRecording();
+                                    this.startBtn.disabled = true;
+                                    this.stopBtn.disabled = false;
+                                    this.updatePushTalkButton();
+                                } else if (message.type === 'translation_text') {
                                     console.log(`[${timestamp}] 收到翻译文本: ${message.data}`);
                                     this.appendTranslation(message.data);
+                                } else if (message.type === 'error') {
+                                    this.updateConnectionStatus('disconnected', message.message || '连接错误');
+                                    alert(message.message || '连接错误');
                                 }
                             } catch (e) {
                                 console.log(`[${timestamp}] 收到普通文本消息:`, event.data);
@@ -889,9 +983,10 @@
                         console.log('WebSocket连接已关闭', event);
                         this.updateConnectionStatus('disconnected', '连接已关闭');
                         this.stopRecording();
-                        this.stopVideoCapture();
                         this.startBtn.disabled = false;
                         this.stopBtn.disabled = true;
+                        this.isPushTalkActive = false;
+                        this.updatePushTalkButton();
                     };
 
                     this.ws.onerror = (error) => {
@@ -928,7 +1023,6 @@
                     }
                     // 停止当前采集，但保留已获取的媒体流以便快速重连
                     this.stopRecording();
-                    this.stopVideoCapture();
                     // 立即按新参数重连
                     this.startTranslation();
                 } catch (e) {
@@ -957,17 +1051,6 @@
                 console.log(`[${t}] 已发送会话更新:`, payload);
             }
 
-            pushFormatUpdate() {
-                if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
-                const payload = {
-                    type: 'format.update',
-                    line_breaks_enabled: this.lineBreaksEnabled.checked
-                };
-                this.ws.send(JSON.stringify(payload));
-                const t = new Date().toLocaleTimeString();
-                console.log(`[${t}] 已发送分行设置更新:`, payload);
-            }
-
             stopTranslation() {
                 if (this.ws) {
                     this.ws.close();
@@ -975,9 +1058,10 @@
                 }
                 
                 this.stopRecording();
-                this.stopVideoCapture();
                 this.startBtn.disabled = false;
                 this.stopBtn.disabled = true;
+                this.isPushTalkActive = false;
+                this.updatePushTalkButton();
                 this.updateConnectionStatus('disconnected', '已断开连接');
             }
 
@@ -1009,7 +1093,7 @@
                             break;
                         }
                     }
-                    this.mediaRecorder = new MediaRecorder(this.stream, selectedType ? { mimeType: selectedType } : {});
+                    this.mediaRecorder = new MediaRecorder(this.audioStream, selectedType ? { mimeType: selectedType } : {});
                     this.mediaRecorder.ondataavailable = (event) => {
                         const t = new Date().toLocaleTimeString();
                         console.log(`[${t}] 音频数据可用: ${event.data.size} bytes, 类型: ${event.data.type}`);
@@ -1170,88 +1254,6 @@
                 }
             }
 
-            startVideoCapture() {
-                if (this.videoIntervalId) return;
-
-                // 每秒2帧发送给服务器，但前端显示保持流畅
-                this.videoIntervalId = setInterval(async () => {
-                    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                        await this.captureAndSendFrame();
-                    }
-                }, 500); // 500ms = 2fps发送到服务器
-                
-                console.log('视频捕获已开始 (显示流畅, 发送2fps)');
-            }
-
-            toggleCamera() {
-                // 动态拉取/停止视频流
-                if (this.cameraEnabled.checked) {
-                    // 拉取视频流并展示
-                    (async () => {
-                        try {
-                            this.videoStream = await navigator.mediaDevices.getUserMedia({
-                                video: {
-                                    width: { ideal: 640 },
-                                    height: { ideal: 480 },
-                                    frameRate: { ideal: 30 }
-                                }
-                            });
-                            this.videoElement.srcObject = this.videoStream;
-                            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                                this.startVideoCapture();
-                            }
-                        } catch (e) {
-                            console.error('获取视频流失败:', e);
-                            this.cameraEnabled.checked = false;
-                        }
-                    })();
-                } else {
-                    this.stopVideoCapture();
-                    if (this.videoStream) {
-                        for (const track of this.videoStream.getTracks()) track.stop();
-                        this.videoStream = null;
-                        this.videoElement.srcObject = null;
-                    }
-                }
-            }
-
-            async captureAndSendFrame() {
-                try {
-                    const timestamp = new Date().toLocaleTimeString();
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    canvas.width = this.videoElement.videoWidth || 640;
-                    canvas.height = this.videoElement.videoHeight || 480;
-                    
-                    ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
-                    
-                    // 转换为JPEG格式
-                    const blob = await new Promise(resolve => {
-                        canvas.toBlob(resolve, 'image/jpeg', 0.8);
-                    });
-                    
-                    if (blob) {
-                        const imageData = await blob.arrayBuffer();
-                        const imageArray = new Uint8Array(imageData);
-                        
-                        // 添加流类型标识 (1 = 视频)
-                        const message = new Uint8Array(imageArray.length + 1);
-                        message[0] = 1; // 视频流标识
-                        message.set(imageArray, 1);
-                        
-                        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                            console.log(`[${timestamp}] 客户端发送视频帧: ${imageArray.length} bytes`);
-                            this.ws.send(message);
-                        } else {
-                            console.warn(`[${timestamp}] WebSocket未连接，跳过视频发送`);
-                        }
-                    }
-                } catch (error) {
-                    console.error('捕获视频帧失败:', error);
-                }
-            }
-
             stopRecording() {
                 // 停止PCM采集
                 this.stopPcmCapture();
@@ -1262,14 +1264,6 @@
                 }
                 this.isRecording = false;
                 console.log('录音已停止');
-            }
-
-            stopVideoCapture() {
-                if (this.videoIntervalId) {
-                    clearInterval(this.videoIntervalId);
-                    this.videoIntervalId = null;
-                }
-                console.log('视频捕获已停止');
             }
 
             appendTranslation(text) {
@@ -1327,10 +1321,11 @@
                     }
                     console.log(`[${timestamp}] 转换为Float32Array，前几个样本: [${float32Array.slice(0, 5).join(', ')}]`);
                     
-                    // 创建音频缓冲区（24kHz单声道）
-                    const audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                    // 创建音频缓冲区（24kHz）；可选仅左声道输出
+                    const channelCount = this.leftChannelOnly.checked ? 2 : 1;
+                    const audioBuffer = this.playbackAudioContext.createBuffer(channelCount, float32Array.length, 24000);
                     audioBuffer.copyToChannel(float32Array, 0);
-                    console.log(`[${timestamp}] 创建音频缓冲区: 1声道, ${float32Array.length}样本, 24kHz`);
+                    console.log(`[${timestamp}] 创建音频缓冲区: ${channelCount}声道, ${float32Array.length}样本, 24kHz`);
                     
                     // 创建音频源并播放
                     const source = this.playbackAudioContext.createBufferSource();
@@ -1389,7 +1384,8 @@
                     this.playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
 
-                const audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                const channelCount = this.leftChannelOnly.checked ? 2 : 1;
+                const audioBuffer = this.playbackAudioContext.createBuffer(channelCount, float32Array.length, 24000);
                 audioBuffer.copyToChannel(float32Array, 0);
 
                 const source = this.playbackAudioContext.createBufferSource();

@@ -5,7 +5,6 @@ import asyncio
 import json
 import websockets
 import traceback
-from osc_manager import osc_manager
 
 class WebTranslateClient:
     """专门用于Web环境的翻译客户端，不依赖pyaudio"""
@@ -28,9 +27,7 @@ class WebTranslateClient:
         voice: str | None = DEFAULT_VOICE,
         *,
         audio_enabled: bool = True,
-        voice_clone_frequency: str | None = None,
-        osc_mute_control: bool = True,
-        send_to_osc: bool = True
+        voice_clone_frequency: str | None = None
     ):
         if not api_key:
             raise ValueError("API key cannot be empty.")
@@ -58,12 +55,6 @@ class WebTranslateClient:
         
         # 语音处理控制：默认为True表示处理语音数据
         self.is_processing_audio = True
-        
-        # OSC静音控制开关：控制是否响应OSC静音消息
-        self.osc_mute_control_enabled = osc_mute_control
-        
-        # OSC发送开关：控制是否发送翻译结果到OSC
-        self.send_to_osc_enabled = send_to_osc
         
         # 翻译耗时统计
         self.translation_start_time = None
@@ -119,7 +110,7 @@ class WebTranslateClient:
                 import time
                 timestamp = time.strftime("%H:%M:%S")
                 print(f"[{timestamp}] {final_text}")
-                await self.send_osc_text(final_text, final_ongoing)
+                self._record_translation_done(final_ongoing)
             except asyncio.CancelledError:
                 return
 
@@ -202,8 +193,8 @@ class WebTranslateClient:
         except Exception as e:
             print(f"发送空白音频失败: {e}")
 
-    async def send_osc_text(self, text: str, ongoing: bool):
-        """发送文本到OSC聊天框"""
+    def _record_translation_done(self, ongoing: bool):
+        """记录一次翻译完成的耗时。"""
         # 如果是发送最终结果（不是进行中），计算耗时
         if not ongoing and self.translation_start_time is not None:
             import time
@@ -211,8 +202,6 @@ class WebTranslateClient:
             timestamp = time.strftime("%H:%M:%S")
             print(f"[{timestamp}] ✅ 翻译完成 - 耗时: {elapsed_time:.2f}秒")
             self.translation_start_time = None
-        
-        await osc_manager.send_text(text, ongoing, self.send_to_osc_enabled)
 
     async def connect(self):
         """建立到翻译服务的 WebSocket 连接。"""
@@ -293,35 +282,6 @@ class WebTranslateClient:
             "type": "input_audio_buffer.append",
             "audio": base64.b64encode(audio_data).decode()
         }
-        await self.ws.send(json.dumps(event))
-
-    async def send_image_frame(self, image_bytes: bytes, *, event_id: str | None = None):
-        """将单帧图像数据发送到服务器。
-
-        约束:
-        1. 图像格式: JPG/JPEG，推荐分辨率 480p/720p，最大 1080p。
-        2. 单张大小 ≤ 500KB。
-        3. 数据须使用 Base64 编码。
-        4. 建议发送频率: 2 张/秒。
-        5. 先发送音频，再发送图像。
-        6. qwen3.5-livetranslate-flash-realtime 会结合最近的图像帧辅助音频翻译。
-        """
-
-        if not self.is_connected:
-            return
-
-        if not image_bytes:
-            raise ValueError("image_bytes 不能为空")
-
-        # 编码为 Base64
-        image_b64 = base64.b64encode(image_bytes).decode()
-
-        event = {
-            "event_id": event_id or f"event_{int(time.time() * 1000)}",
-            "type": "input_image_buffer.append",
-            "image": image_b64,
-        }
-
         await self.ws.send(json.dumps(event))
 
     async def handle_server_messages(self, on_text_received, on_audio_received=None):

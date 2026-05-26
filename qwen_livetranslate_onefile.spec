@@ -6,7 +6,7 @@ block_cipher = None
 # 说明：
 # - 资源文件：打包 static/ 目录（用于 FastAPI 返回的 index.html）
 # - 控制台程序：console=True，便于看到日志/报错
-# - exe 名称：QwenLiveTranslateOSC（可按需改名）
+# - exe 名称：QwenLiveTranslate（可按需改名）
 
 
 a = Analysis(
@@ -39,7 +39,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name="QwenLiveTranslateOSC",
+    name="QwenLiveTranslate",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
