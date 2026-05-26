@@ -422,14 +422,55 @@
                 <div class="form-group">
                     <label for="voiceSelect">语音音色</label>
                     <select id="voiceSelect">
-                        <option value="Cherry" selected>1. Cherry (女声) [默认]</option>
-                        <option value="Nofish">2. Nofish (男声)</option>
-                        <option value="Sunny">3. 晴儿 Sunny (四川女声)</option>
-                        <option value="Jada">4. 阿珍 Jada (上海女声)</option>
-                        <option value="Dylan">5. 晓东 Dylan (北京男声)</option>
-                        <option value="Peter">6. 李彼得 Peter (天津男声)</option>
-                        <option value="Eric">7. 程川 Eric (四川男声)</option>
-                        <option value="Kiki">8. 阿清 Kiki (粤语女声)</option>
+                        <option value="Tina" selected>甜甜 Tina [默认]</option>
+                        <option value="Cindy">林欣宜 Cindy</option>
+                        <option value="Liora Mira">清欢 Liora Mira</option>
+                        <option value="Sunnybobi">知芝 Sunnybobi</option>
+                        <option value="Raymond">林川野 Raymond</option>
+                        <option value="Ethan">晨煦 Ethan</option>
+                        <option value="Theo Calm">予安 Theo Calm</option>
+                        <option value="Serena">苏瑶 Serena</option>
+                        <option value="Harvey">厚 Harvey</option>
+                        <option value="Maia">四月 Maia</option>
+                        <option value="Evan">江晨 Evan</option>
+                        <option value="Qiao">小乔妹 Qiao</option>
+                        <option value="Momo">茉兔 Momo</option>
+                        <option value="Wil">伟伦 Wil</option>
+                        <option value="Angel">台普 - 安琪 Angel</option>
+                        <option value="Li Cassian">东厂 - 李公公 Li Cassian</option>
+                        <option value="Mia">温柔生活博主 - 舒然 Mia</option>
+                        <option value="Joyner">喜剧担当 - 阿逗 Joyner</option>
+                        <option value="Gold">金爷 Gold</option>
+                        <option value="Katerina">卡捷琳娜 Katerina</option>
+                        <option value="Ryan">甜茶 Ryan</option>
+                        <option value="Jennifer">詹妮弗 Jennifer</option>
+                        <option value="Aiden">艾登 Aiden</option>
+                        <option value="Mione">敏儿 Mione</option>
+                        <option value="Sohee">素熙 Sohee</option>
+                        <option value="Lenn">莱恩 Lenn</option>
+                        <option value="Ono Anna">小野杏 Ono Anna</option>
+                        <option value="Sonrisa">索尼莎 Sonrisa</option>
+                        <option value="Bodega">博德加 Bodega</option>
+                        <option value="Emilien">埃米尔安 Emilien</option>
+                        <option value="Andre">安德雷 Andre</option>
+                        <option value="Radio Gol">拉迪奥·戈尔 Radio Gol</option>
+                        <option value="Alek">阿列克 Alek</option>
+                        <option value="Rizky">阿力 Rizky</option>
+                        <option value="Roya">萝雅 Roya</option>
+                        <option value="Arda">阿尔达 Arda</option>
+                        <option value="Hana">阿幸 Hana</option>
+                        <option value="Dolce">多尔切 Dolce</option>
+                        <option value="Jakub">雅克 Jakub</option>
+                        <option value="Griet">海娜 Griet</option>
+                        <option value="Eliška">艾莉卡 Eliška</option>
+                        <option value="Marina">玛丽娜 Marina</option>
+                        <option value="Siiri">西芮 Siiri</option>
+                        <option value="Ingrid">林恩 Ingrid</option>
+                        <option value="Sigga">海娜 Sigga</option>
+                        <option value="Bea">雅娜 Bea</option>
+                        <option value="Chloe">思怡 Chloe</option>
+                        <option value="__clone_once">声音复刻：会话开始复刻一次</option>
+                        <option value="__clone_always">声音复刻：每次生成前复刻</option>
                     </select>
                 </div>
 
@@ -555,6 +596,22 @@
 
             getAudioOutputEnabled() {
                 return this.audioEnabled.checked && this.isAudioOutputLanguage();
+            }
+
+            getVoiceConfig() {
+                if (!this.getAudioOutputEnabled()) {
+                    return { voice: 'Tina', voice_clone_frequency: '' };
+                }
+
+                if (this.voiceSelect.value === '__clone_once') {
+                    return { voice: 'default', voice_clone_frequency: 'once' };
+                }
+
+                if (this.voiceSelect.value === '__clone_always') {
+                    return { voice: 'default', voice_clone_frequency: 'always' };
+                }
+
+                return { voice: this.voiceSelect.value, voice_clone_frequency: '' };
             }
 
             updateLanguageCapabilities() {
@@ -773,10 +830,12 @@
                 try {
                     // 构建WebSocket URL with parameters
                     const wsUrl = new URL('/ws', window.location);
+                    const voiceConfig = this.getVoiceConfig();
                     wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                     wsUrl.searchParams.set('target_language', this.targetLanguage.value);
-                    wsUrl.searchParams.set('voice', this.voiceSelect.value);
+                    wsUrl.searchParams.set('voice', voiceConfig.voice);
                     wsUrl.searchParams.set('audio_enabled', this.getAudioOutputEnabled());
+                    wsUrl.searchParams.set('voice_clone_frequency', voiceConfig.voice_clone_frequency);
                     wsUrl.searchParams.set('osc_mute_control', this.oscMuteControl.checked);
                     wsUrl.searchParams.set('send_to_osc', this.sendToOsc.checked);
                     wsUrl.searchParams.set('line_breaks_enabled', this.lineBreaksEnabled.checked);
@@ -879,11 +938,13 @@
 
             pushSessionUpdate() {
                 if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+                const voiceConfig = this.getVoiceConfig();
                 const payload = {
                     type: 'session.update',
                     target_language: this.targetLanguage.value,
-                    voice: this.voiceSelect.value,
-                    audio_enabled: this.getAudioOutputEnabled()
+                    voice: voiceConfig.voice,
+                    audio_enabled: this.getAudioOutputEnabled(),
+                    voice_clone_frequency: voiceConfig.voice_clone_frequency
                 };
                 // 去重：相同配置不重复下发，避免打断当前TTS
                 const key = JSON.stringify(payload);

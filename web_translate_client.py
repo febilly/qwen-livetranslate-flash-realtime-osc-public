@@ -18,15 +18,32 @@ class WebTranslateClient:
         "ru", "th", "vi", "ja", "tr", "hi", "ms", "nl", "ur", "nb",
         "sv", "da", "he", "fi", "pl", "is", "cs", "fil", "fa",
     }
+    DEFAULT_VOICE = "Tina"
+    VOICE_CLONE_FREQUENCIES = {"once", "always"}
     
-    def __init__(self, api_key: str, target_language: str = "en", voice: str | None = "Cherry", *, audio_enabled: bool = True, osc_mute_control: bool = True, send_to_osc: bool = True):
+    def __init__(
+        self,
+        api_key: str,
+        target_language: str = "en",
+        voice: str | None = DEFAULT_VOICE,
+        *,
+        audio_enabled: bool = True,
+        voice_clone_frequency: str | None = None,
+        osc_mute_control: bool = True,
+        send_to_osc: bool = True
+    ):
         if not api_key:
             raise ValueError("API key cannot be empty.")
             
         self.api_key = api_key
         self.target_language = target_language
         self.audio_enabled = audio_enabled and self._supports_audio_output(target_language)
-        self.voice = voice if self.audio_enabled else "Cherry"
+        self.voice = voice if voice else self.DEFAULT_VOICE
+        self.voice_clone_frequency = (
+            voice_clone_frequency
+            if voice_clone_frequency in self.VOICE_CLONE_FREQUENCIES and self.audio_enabled
+            else None
+        )
         self.ws = None
         self.api_url = self.API_URL_TEMPLATE.format(model=self.MODEL_NAME)
         
@@ -72,7 +89,13 @@ class WebTranslateClient:
             }
         }
 
-        if audio_enabled and self.voice:
+        if audio_enabled and self.voice_clone_frequency:
+            session["voice"] = "default"
+            session["enable_voice_clone"] = True
+            session["voice_clone_options"] = {
+                "frequency": self.voice_clone_frequency
+            }
+        elif audio_enabled and self.voice:
             session["voice"] = self.voice
 
         return session
@@ -214,7 +237,14 @@ class WebTranslateClient:
         pass # print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
         await self.ws.send(json.dumps(config))
 
-    async def update_session(self, *, target_language: str | None = None, voice: str | None = None, audio_enabled: bool | None = None):
+    async def update_session(
+        self,
+        *,
+        target_language: str | None = None,
+        voice: str | None = None,
+        audio_enabled: bool | None = None,
+        voice_clone_frequency: str | None = None
+    ):
         """动态更新会话配置（语言/音色/输出通道）。"""
         if target_language is not None:
             self.target_language = target_language
@@ -224,6 +254,14 @@ class WebTranslateClient:
             self.audio_enabled = audio_enabled and self._supports_audio_output(self.target_language)
         elif not self._supports_audio_output(self.target_language):
             self.audio_enabled = False
+        if voice_clone_frequency is not None:
+            self.voice_clone_frequency = (
+                voice_clone_frequency
+                if voice_clone_frequency in self.VOICE_CLONE_FREQUENCIES and self.audio_enabled
+                else None
+            )
+        elif not self.audio_enabled:
+            self.voice_clone_frequency = None
 
         config = {
             "event_id": f"event_{int(time.time() * 1000)}",

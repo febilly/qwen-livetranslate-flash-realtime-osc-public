@@ -86,6 +86,7 @@ async def create_and_connect_client(
     target_language: str,
     voice: str,
     audio_enabled: bool,
+    voice_clone_frequency: str | None,
     osc_mute_control: bool,
     send_to_osc: bool,
     on_text_callback
@@ -97,6 +98,7 @@ async def create_and_connect_client(
         target_language=target_language,
         voice=voice,
         audio_enabled=audio_enabled,
+        voice_clone_frequency=voice_clone_frequency,
         osc_mute_control=osc_mute_control,
         send_to_osc=send_to_osc
     )
@@ -163,13 +165,14 @@ async def get():
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, 
                            target_language: str = "en", 
-                           voice: str = "Cherry", 
+                           voice: str = "Tina", 
                            audio_enabled: bool = True,
+                           voice_clone_frequency: str | None = None,
                            osc_mute_control: bool = True,
                            send_to_osc: bool = True,
                            line_breaks_enabled: bool = False):
     await websocket.accept()
-    logger.info(f"WebSocket连接已建立, 目标语言: {target_language}, 音色: {voice}, 音频: {audio_enabled}, OSC静音控制: {osc_mute_control}, 发送到OSC: {send_to_osc}, 分行逻辑: {line_breaks_enabled}")
+    logger.info(f"WebSocket连接已建立, 目标语言: {target_language}, 音色: {voice}, 音频: {audio_enabled}, 克隆频率: {voice_clone_frequency}, OSC静音控制: {osc_mute_control}, 发送到OSC: {send_to_osc}, 分行逻辑: {line_breaks_enabled}")
     
     # 确保OSC服务器已启动（只启动一次）
     await osc_manager.start_server()
@@ -235,7 +238,7 @@ async def websocket_endpoint(websocket: WebSocket,
                             websocket_active = False
                     
                     client = await create_and_connect_client(
-                        api_key, target_language, voice, audio_enabled, osc_mute_control, send_to_osc, on_text_received
+                        api_key, target_language, voice, audio_enabled, voice_clone_frequency, osc_mute_control, send_to_osc, on_text_received
                     )
                     message_task = asyncio.create_task(client.handle_server_messages(on_text_received, on_audio_received))
                     video_sender_task = asyncio.create_task(stream_video_data_task(client, video_queue))
@@ -273,7 +276,7 @@ async def websocket_endpoint(websocket: WebSocket,
                                 logger.debug("收到心跳回应")
                             else:
                                 logger.info(f"收到文本消息: {text_data}")
-                                # 处理前端的会话更新指令: {type:'session.update', target_language, voice, audio_enabled}
+                                # 处理前端的会话更新指令: {type:'session.update', target_language, voice, audio_enabled, voice_clone_frequency}
                                 try:
                                     import json as _json
                                     payload = _json.loads(text_data)
@@ -282,13 +285,15 @@ async def websocket_endpoint(websocket: WebSocket,
                                             lang = payload.get('target_language')
                                             voice = payload.get('voice')
                                             audio_enabled = payload.get('audio_enabled')
+                                            voice_clone_frequency = payload.get('voice_clone_frequency', "")
                                             if client:
                                                 await client.update_session(
                                                     target_language=lang,
                                                     voice=voice,
-                                                    audio_enabled=audio_enabled
+                                                    audio_enabled=audio_enabled,
+                                                    voice_clone_frequency=voice_clone_frequency
                                                 )
-                                                logger.info(f"已下发会话更新: lang={lang}, voice={voice}, audio={audio_enabled}")
+                                                logger.info(f"已下发会话更新: lang={lang}, voice={voice}, audio={audio_enabled}, clone={voice_clone_frequency}")
                                         elif payload.get('type') == 'format.update':
                                             line_breaks_enabled = bool(payload.get('line_breaks_enabled', False))
                                             osc_manager.set_line_breaks_enabled(line_breaks_enabled)
