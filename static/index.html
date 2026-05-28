@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>面对面实时语音翻译 - Qwen</title>
+    <title>Face-to-Face Real-Time Translator - Qwen</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -506,13 +506,13 @@
         <div class="config-card">
             <div class="config-header">
                 <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                    <h1 id="uiTitle">面对面双向语音翻译</h1>
+                    <h1 id="uiTitle">Face-to-Face Translator</h1>
                     <select id="uiLangSelect" style="width: auto; padding: 6px 12px; border-radius: 8px; font-size: 0.9rem; border: 1px solid #d1d5db; background-color: #ffffff;">
                         <option value="en" selected>English</option>
                         <option value="zh">中文</option>
                     </select>
                 </div>
-                <p id="uiDesc">为手机设计，上下一分为二，支持双流独立连接与双声道路由</p>
+                <p id="uiDesc">Designed for mobile, split screen, supports dual-stream connections and stereo routing</p>
             </div>
 
             <div class="api-key-group">
@@ -523,102 +523,102 @@
             <div class="sides-config">
                 <!-- B侧配置 -->
                 <div class="side-card side-b">
-                    <div class="side-title" id="titleSideB">👤 上半屏 (B 侧)</div>
+                    <div class="side-title" id="titleSideB">👤 Top Panel (Side B)</div>
                     <div class="form-group">
-                        <label for="langSelectB" class="labelLang">发言母语</label>
+                        <label for="langSelectB" class="labelLang">Native Language</label>
                         <select id="langSelectB">
-                            <option value="zh">中文 (Chinese)</option>
-                            <option value="en" selected>英语 (English)</option>
-                            <option value="ja">日语 (Japanese)</option>
-                            <option value="ko">韩语 (Korean)</option>
-                            <option value="ru">俄语 (Russian)</option>
-                            <option value="fr">法语 (French)</option>
-                            <option value="de">德语 (German)</option>
-                            <option value="es">西班牙语 (Spanish)</option>
-                            <option value="pt">葡萄牙语 (Portuguese)</option>
-                            <option value="ar">阿拉伯语 (Arabic)</option>
-                            <option value="id">印尼语 (Indonesian)</option>
-                            <option value="th">泰语 (Thai)</option>
-                            <option value="vi">越南语 (Vietnamese)</option>
+                            <option value="zh">Chinese</option>
+                            <option value="en" selected>English</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="ru">Russian</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="es">Spanish</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="ar">Arabic</option>
+                            <option value="id">Indonesian</option>
+                            <option value="th">Thai</option>
+                            <option value="vi">Vietnamese</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="voiceSelectB" class="labelVoice">收听音色 (听对方说话的翻译音色)</label>
+                        <label for="voiceSelectB" class="labelVoice">Voice (to hear translation)</label>
                         <select id="voiceSelectB">
-                            <option value="Tina">甜甜 Tina [英文/中文]</option>
-                            <option value="Cindy">Cindy [中文/英文]</option>
-                            <option value="Raymond">Raymond [男声]</option>
-                            <option value="Ethan">Ethan [男声]</option>
-                            <option value="Serena">Serena [女声]</option>
-                            <option value="Harvey">Harvey [男声]</option>
-                            <option value="Jakub" selected>Jakub [默认]</option>
-                            <option value="__clone_once">声音复刻：会话开始复刻一次</option>
-                            <option value="__clone_always">声音复刻：每次生成前复刻</option>
+                            <option value="Tina">Tina [Chinese/English]</option>
+                            <option value="Cindy">Cindy [Chinese/English]</option>
+                            <option value="Raymond">Raymond [Male]</option>
+                            <option value="Ethan">Ethan [Male]</option>
+                            <option value="Serena">Serena [Female]</option>
+                            <option value="Harvey">Harvey [Male]</option>
+                            <option value="Jakub" selected>Jakub [Default]</option>
+                            <option value="__clone_once">Voice clone: once at session start</option>
+                            <option value="__clone_always">Voice clone: before every response</option>
                         </select>
                     </div>
                 </div>
 
                 <!-- A侧配置 -->
                 <div class="side-card side-a">
-                    <div class="side-title" id="titleSideA">👤 下半屏 (A 侧)</div>
+                    <div class="side-title" id="titleSideA">👤 Bottom Panel (Side A)</div>
                     <div class="form-group">
-                        <label for="langSelectA" class="labelLang">发言母语</label>
+                        <label for="langSelectA" class="labelLang">Native Language</label>
                         <select id="langSelectA">
-                            <option value="zh" selected>中文 (Chinese)</option>
-                            <option value="en">英语 (English)</option>
-                            <option value="ja">日语 (Japanese)</option>
-                            <option value="ko">韩语 (Korean)</option>
-                            <option value="ru">俄语 (Russian)</option>
-                            <option value="fr">法语 (French)</option>
-                            <option value="de">德语 (German)</option>
-                            <option value="es">西班牙语 (Spanish)</option>
-                            <option value="pt">葡萄牙语 (Portuguese)</option>
-                            <option value="ar">阿拉伯语 (Arabic)</option>
-                            <option value="id">印尼语 (Indonesian)</option>
-                            <option value="th">泰语 (Thai)</option>
-                            <option value="vi">越南语 (Vietnamese)</option>
+                            <option value="zh" selected>Chinese</option>
+                            <option value="en">English</option>
+                            <option value="ja">Japanese</option>
+                            <option value="ko">Korean</option>
+                            <option value="ru">Russian</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="es">Spanish</option>
+                            <option value="pt">Portuguese</option>
+                            <option value="ar">Arabic</option>
+                            <option value="id">Indonesian</option>
+                            <option value="th">Thai</option>
+                            <option value="vi">Vietnamese</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="voiceSelectA" class="labelVoice">收听音色 (听对方说话的翻译音色)</label>
+                        <label for="voiceSelectA" class="labelVoice">Voice (to hear translation)</label>
                         <select id="voiceSelectA">
-                            <option value="Tina" selected>甜甜 Tina [英文/中文]</option>
-                            <option value="Cindy">Cindy [中文/英文]</option>
-                            <option value="Raymond">Raymond [男声]</option>
-                            <option value="Ethan">Ethan [男声]</option>
-                            <option value="Serena">Serena [女声]</option>
-                            <option value="Harvey">Harvey [男声]</option>
-                            <option value="Jakub">Jakub [默认]</option>
-                            <option value="__clone_once">声音复刻：会话开始复刻一次</option>
-                            <option value="__clone_always">声音复刻：每次生成前复刻</option>
+                            <option value="Tina" selected>Tina [Chinese/English]</option>
+                            <option value="Cindy">Cindy [Chinese/English]</option>
+                            <option value="Raymond">Raymond [Male]</option>
+                            <option value="Ethan">Ethan [Male]</option>
+                            <option value="Serena">Serena [Female]</option>
+                            <option value="Harvey">Harvey [Male]</option>
+                            <option value="Jakub">Jakub [Default]</option>
+                            <option value="__clone_once">Voice clone: once at session start</option>
+                            <option value="__clone_always">Voice clone: before every response</option>
                         </select>
                     </div>
                 </div>
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="microphoneSelect" id="labelMicrophone">麦克风设备</label>
+                <label for="microphoneSelect" id="labelMicrophone">Microphone</label>
                 <select id="microphoneSelect">
-                    <option value="">加载中...</option>
+                    <option value="">Loading...</option>
                 </select>
             </div>
 
             <div class="common-settings">
                 <label class="checkbox-group">
                     <input type="checkbox" id="disableEchoCancellation">
-                    <span id="labelDisableEcho">禁用浏览器回声消除 (可能提高某些设备的拾音效果)</span>
+                    <span id="labelDisableEcho">Disable Echo Cancellation (may improve pickup on some devices)</span>
                 </label>
                 <label class="checkbox-group" style="margin-top: 8px;">
                     <input type="checkbox" id="enableStereoRouting">
-                    <span id="labelEnableStereo">开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)</span>
+                    <span id="labelEnableStereo">Enable Stereo Routing (A-Left, B-Right, default off)</span>
                 </label>
                 <label class="checkbox-group" style="margin-top: 8px;">
                     <input type="checkbox" id="showAsrTranscript" checked>
-                    <span id="labelShowAsrTranscript">显示说话人转写原文 (默认开启)</span>
+                    <span id="labelShowAsrTranscript">Show Speaker's Original Transcript (Enabled by default)</span>
                 </label>
             </div>
 
-            <button class="start-btn" id="startBtn">开启面对面翻译</button>
+            <button class="start-btn" id="startBtn">Start Translation</button>
         </div>
     </div>
 
@@ -628,24 +628,24 @@
         <div class="panel top-panel" id="panelB">
             <!-- 翻译结果 (物理屏幕中央) -->
             <div class="transcript-container" id="transcriptB">
-                <div class="sentence interim">等待对方说话...</div>
+                <div class="sentence interim">Waiting for voice...</div>
             </div>
 
             <!-- 控制区 (物理屏幕上方) -->
             <div class="control-row">
                 <button class="mic-btn" id="micBtnB" disabled>
-                    <span class="mic-btn-text">🎤 按住或轻点说话</span>
+                    <span class="mic-btn-text">🎤 Hold or Tap to Talk</span>
                     <div class="mic-btn-visualizer" id="barsB"></div>
                 </button>
             </div>
 
             <!-- 状态面板 (物理屏幕最上方) -->
             <div class="panel-header">
-                <span id="panelTitleB">👤 上半屏 (B)</span>
-                <span id="sideLabelB">对方的语言: -</span>
+                <span id="panelTitleB">👤 Top Panel (B)</span>
+                <span id="sideLabelB">Target Language: -</span>
                 <div class="status-badge">
                     <span class="status-dot" id="statusDotB"></span>
-                    <span id="statusTextB">未连接</span>
+                    <span id="statusTextB">Disconnected</span>
                 </div>
             </div>
         </div>
@@ -654,30 +654,30 @@
         <div class="panel bottom-panel" id="panelA">
             <!-- 翻译结果 (物理屏幕中央) -->
             <div class="transcript-container" id="transcriptA">
-                <div class="sentence interim">等待对方说话...</div>
+                <div class="sentence interim">Waiting for voice...</div>
             </div>
 
             <!-- 控制区 (物理屏幕下方) -->
             <div class="control-row">
                 <button class="mic-btn" id="micBtnA" disabled>
-                    <span class="mic-btn-text">🎤 按住或轻点说话</span>
+                    <span class="mic-btn-text">🎤 Hold or Tap to Talk</span>
                     <div class="mic-btn-visualizer" id="barsA"></div>
                 </button>
             </div>
 
             <!-- 状态面板 (物理屏幕最下方) -->
             <div class="panel-header">
-                <span id="panelTitleA">👤 下半屏 (A)</span>
-                <span id="sideLabelA">对方的语言: -</span>
+                <span id="panelTitleA">👤 Bottom Panel (A)</span>
+                <span id="sideLabelA">Target Language: -</span>
                 <div class="status-badge">
                     <span class="status-dot" id="statusDotA"></span>
-                    <span id="statusTextA">未连接</span>
+                    <span id="statusTextA">Disconnected</span>
                 </div>
             </div>
         </div>
 
         <!-- 悬浮在屏幕正中心的结束按钮 -->
-        <button class="end-btn" id="endBtn" title="结束翻译">✕</button>
+        <button class="end-btn" id="endBtn" title="End translation">✕</button>
     </div>
 
     <script>
@@ -999,7 +999,7 @@
                     await this.enumerateAudioDevices();
                 } catch (error) {
                     console.error('获取麦克风权限失败:', error);
-                    alert('需要麦克风权限才能使用语音翻译功能。');
+                    alert(this.getCurrentUIStrings().alertMic);
                 }
             }
 
@@ -1011,14 +1011,14 @@
                     if (audioInputDevices.length === 0) {
                         const option = document.createElement('option');
                         option.value = '';
-                        option.textContent = '未发现麦克风';
+                        option.textContent = this.getCurrentUIStrings().noMicrophone;
                         this.microphoneSelect.appendChild(option);
                         return;
                     }
                     audioInputDevices.forEach((device, index) => {
                         const option = document.createElement('option');
                         option.value = device.deviceId;
-                        option.textContent = device.label || `麦克风 ${index + 1}`;
+                        option.textContent = device.label || `${this.getCurrentUIStrings().microphoneFallback} ${index + 1}`;
                         this.microphoneSelect.appendChild(option);
                     });
                     if (this.selectedMicrophoneId) {
@@ -1126,6 +1126,7 @@
             getUITranslations() {
                 return {
                     en: {
+                        documentTitle: "Face-to-Face Real-Time Translator - Qwen",
                         title: "Face-to-Face Translator",
                         desc: "Designed for mobile, split screen, supports dual-stream connections and stereo routing",
                         apiKeyLabel: "DashScope API Key",
@@ -1141,6 +1142,10 @@
                         startBtnText: "Start Translation",
                         alertApiKey: "Please enter DashScope API Key",
                         alertMic: "Please grant microphone permission before starting",
+                        loadingMicrophone: "Loading...",
+                        noMicrophone: "No microphone found",
+                        microphoneFallback: "Microphone",
+                        endTitle: "End translation",
                         waiting: "Waiting for voice...",
                         asrPrefix: "Me: ",
                         defaultMic: "🎤 Hold or Tap to Talk",
@@ -1154,9 +1159,36 @@
                         statusConnected: "Ready",
                         statusError: "Error",
                         statusDisconnected: "Disconnected",
-                        statusClose: "Disconnected"
+                        statusClose: "Disconnected",
+                        languages: {
+                            zh: "Chinese",
+                            en: "English",
+                            ja: "Japanese",
+                            ko: "Korean",
+                            ru: "Russian",
+                            fr: "French",
+                            de: "German",
+                            es: "Spanish",
+                            pt: "Portuguese",
+                            ar: "Arabic",
+                            id: "Indonesian",
+                            th: "Thai",
+                            vi: "Vietnamese"
+                        },
+                        voices: {
+                            Tina: "Tina [Chinese/English]",
+                            Cindy: "Cindy [Chinese/English]",
+                            Raymond: "Raymond [Male]",
+                            Ethan: "Ethan [Male]",
+                            Serena: "Serena [Female]",
+                            Harvey: "Harvey [Male]",
+                            Jakub: "Jakub [Default]",
+                            __clone_once: "Voice clone: once at session start",
+                            __clone_always: "Voice clone: before every response"
+                        }
                     },
                     zh: {
+                        documentTitle: "面对面实时语音翻译 - Qwen",
                         title: "面对面双向语音翻译",
                         desc: "为手机设计，上下一分为二，支持双流独立连接与双声道路由",
                         apiKeyLabel: "DashScope API Key",
@@ -1172,6 +1204,10 @@
                         startBtnText: "开启面对面翻译",
                         alertApiKey: "请输入 DashScope API Key",
                         alertMic: "请允许麦克风权限后再开始",
+                        loadingMicrophone: "加载中...",
+                        noMicrophone: "未发现麦克风",
+                        microphoneFallback: "麦克风",
+                        endTitle: "结束翻译",
                         waiting: "等待对方说话...",
                         asrPrefix: "我: ",
                         defaultMic: "🎤 按住或轻点说话",
@@ -1185,9 +1221,83 @@
                         statusConnected: "按住说话",
                         statusError: "错误",
                         statusDisconnected: "未连接",
-                        statusClose: "已断开"
+                        statusClose: "已断开",
+                        languages: {
+                            zh: "中文",
+                            en: "英语",
+                            ja: "日语",
+                            ko: "韩语",
+                            ru: "俄语",
+                            fr: "法语",
+                            de: "德语",
+                            es: "西班牙语",
+                            pt: "葡萄牙语",
+                            ar: "阿拉伯语",
+                            id: "印尼语",
+                            th: "泰语",
+                            vi: "越南语"
+                        },
+                        voices: {
+                            Tina: "甜甜 Tina [英文/中文]",
+                            Cindy: "Cindy [中文/英文]",
+                            Raymond: "Raymond [男声]",
+                            Ethan: "Ethan [男声]",
+                            Serena: "Serena [女声]",
+                            Harvey: "Harvey [男声]",
+                            Jakub: "Jakub [默认]",
+                            __clone_once: "声音复刻：会话开始复刻一次",
+                            __clone_always: "声音复刻：每次生成前复刻"
+                        }
                     }
                 };
+            }
+
+            getCurrentUIStrings() {
+                const translations = this.getUITranslations();
+                return translations[this.currentUILang || 'en'] || translations.en;
+            }
+
+            localizeSelectOptions(select, labels) {
+                if (!select || !labels) return;
+                Array.from(select.options).forEach((option) => {
+                    if (Object.prototype.hasOwnProperty.call(labels, option.value)) {
+                        option.textContent = labels[option.value];
+                    }
+                });
+            }
+
+            refreshLocalizedRuntimeText() {
+                const uiA = this.getUIStrings('A');
+                const uiB = this.getUIStrings('B');
+                const micTextA = this.micBtnA ? this.micBtnA.querySelector('.mic-btn-text') : null;
+                const micTextB = this.micBtnB ? this.micBtnB.querySelector('.mic-btn-text') : null;
+
+                if (micTextA && !this.micBtnA.dataset.recordingMode) {
+                    micTextA.textContent = uiA.defaultMic;
+                }
+                if (micTextB && !this.micBtnB.dataset.recordingMode) {
+                    micTextB.textContent = uiB.defaultMic;
+                }
+
+                const statusMap = {
+                    statusDotA: [this.statusTextA, uiA],
+                    statusDotB: [this.statusTextB, uiB]
+                };
+                Object.entries(statusMap).forEach(([dotId, entry]) => {
+                    const dot = document.getElementById(dotId);
+                    const [textEl, ui] = entry;
+                    if (!dot || !textEl) return;
+                    if (dot.classList.contains('connecting')) {
+                        textEl.textContent = ui.statusConnecting;
+                    } else if (dot.classList.contains('connected')) {
+                        textEl.textContent = ui.statusConnected;
+                    } else {
+                        textEl.textContent = ui.statusDisconnected;
+                    }
+                });
+
+                this.renderTranscript('A');
+                this.renderTranscript('B');
             }
 
             applyUILang(langCode) {
@@ -1198,6 +1308,8 @@
                 localStorage.setItem('livetranslate_ui_lang', lang);
                 this.currentUILang = lang;
                 this.uiLangSelect.value = lang;
+                document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+                document.title = t.documentTitle;
 
                 // 更新配置卡片元素
                 document.getElementById('uiTitle').textContent = t.title;
@@ -1225,32 +1337,27 @@
                 document.getElementById('labelShowAsrTranscript').textContent = t.showAsrLabel;
 
                 this.startBtn.textContent = t.startBtnText;
+                this.endBtn.title = t.endTitle;
+                if (this.microphoneSelect.options.length === 1 && !this.microphoneSelect.options[0].value) {
+                    this.microphoneSelect.options[0].textContent = t.loadingMicrophone;
+                }
+                this.localizeSelectOptions(this.langSelectA, t.languages);
+                this.localizeSelectOptions(this.langSelectB, t.languages);
+                this.localizeSelectOptions(this.voiceSelectA, t.voices);
+                this.localizeSelectOptions(this.voiceSelectB, t.voices);
+                this.refreshLocalizedRuntimeText();
+                this.enumerateAudioDevices();
             }
 
             getUIStrings(side) {
-                const sideLang = (side === 'A') ? this.langSelectA.value : this.langSelectB.value;
-                
-                // 根据该侧语言自动适配 UI。如果不是 zh 或 en，则回落到当前主 UI 语言
-                let langCode = 'en'; 
-                if (sideLang === 'zh') {
-                    langCode = 'zh';
-                } else if (sideLang === 'en') {
-                    langCode = 'en';
-                } else {
-                    langCode = this.currentUILang || 'en';
-                }
-
                 const translations = this.getUITranslations();
-                return translations[langCode] || translations['en'];
+                return translations[this.currentUILang || 'en'] || translations['en'];
             }
 
-            getLanguageName(optionText, targetLangCode) {
-                const isZh = (targetLangCode === 'zh');
-                const match = optionText.match(/(.*?)\s*\((.*?)\)/);
-                if (match) {
-                    return isZh ? match[1].trim() : match[2].trim();
-                }
-                return optionText;
+            getLanguageName(languageCode, targetLangCode) {
+                const translations = this.getUITranslations();
+                const lang = targetLangCode === 'zh' ? 'zh' : 'en';
+                return translations[lang].languages[languageCode] || languageCode;
             }
 
             async startTranslation() {
@@ -1286,10 +1393,9 @@
                 this.panelTitleB.textContent = uiB.panelTitleB;
 
                 // 显示双方发言语言提示
-                const optionA_Text = this.langSelectA.options[this.langSelectA.selectedIndex].text;
-                const optionB_Text = this.langSelectB.options[this.langSelectB.selectedIndex].text;
-                const langB_Name = this.getLanguageName(optionB_Text, (this.langSelectA.value === 'zh' ? 'zh' : 'en'));
-                const langA_Name = this.getLanguageName(optionA_Text, (this.langSelectB.value === 'zh' ? 'zh' : 'en'));
+                const labelLang = this.currentUILang === 'zh' ? 'zh' : 'en';
+                const langB_Name = this.getLanguageName(this.langSelectB.value, labelLang);
+                const langA_Name = this.getLanguageName(this.langSelectA.value, labelLang);
                 this.sideLabelA.textContent = `${uiA.targetLabel}: ${langB_Name}`;
                 this.sideLabelB.textContent = `${uiB.targetLabel}: ${langA_Name}`;
 
@@ -1730,9 +1836,8 @@
                 this.micBtnB.dataset.recordingMode = '';
                 const textSpanA = this.micBtnA.querySelector('.mic-btn-text');
                 const textSpanB = this.micBtnB.querySelector('.mic-btn-text');
-                const defaultText = "🎤 按住或轻点说话";
-                if (textSpanA) textSpanA.textContent = defaultText;
-                if (textSpanB) textSpanB.textContent = defaultText;
+                if (textSpanA) textSpanA.textContent = this.getUIStrings('A').defaultMic;
+                if (textSpanB) textSpanB.textContent = this.getUIStrings('B').defaultMic;
 
                 // 清空队列
                 this.playbackQueueA = [];
