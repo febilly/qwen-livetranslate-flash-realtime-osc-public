@@ -207,7 +207,7 @@
         #translationScreen {
             display: none;
             flex-direction: column;
-            height: 100vh;
+            height: 100svh;
             width: 100vw;
             position: relative;
             background: #ffffff;
@@ -216,11 +216,11 @@
 
         .panel {
             flex: 1;
-            height: 50vh;
+            height: 50svh;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 20px 24px;
+            justify-content: flex-end;
+            padding: 16px 24px;
             box-sizing: border-box;
             position: relative;
         }
@@ -249,8 +249,9 @@
             font-size: 0.8rem;
             color: var(--color-text-light);
             font-weight: 600;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
-            padding-bottom: 8px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            padding-top: 8px;
+            margin-top: 8px;
             z-index: 10;
         }
 
@@ -295,7 +296,8 @@
         .transcript-container {
             flex: 1;
             overflow-y: auto;
-            margin: 16px 0;
+            margin-top: 28px; /* 增加边距，防止被中央按钮遮挡 */
+            margin-bottom: 12px;
             padding-right: 8px;
             display: flex;
             flex-direction: column;
@@ -334,57 +336,60 @@
             padding-top: 10px;
         }
 
-        .visualizer-container {
-            flex: 1;
-            height: 36px;
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 18px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .visualizer-bars {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            gap: 3px;
-            padding: 0 10px;
-        }
-
         .visualizer-bar {
             width: 3px;
             height: 6px;
+            background-color: #ffffff;
             border-radius: 1.5px;
             transition: height 0.1s ease;
         }
 
-        .top-panel .visualizer-bar {
-            background-color: var(--color-b-primary);
-        }
-
-        .bottom-panel .visualizer-bar {
-            background-color: var(--color-a-primary);
-        }
-
-        /* 麦克风按键麦按钮 */
+        /* 麦克风按键麦按钮 (宽按钮) */
         .mic-btn {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
+            position: relative;
+            width: 100%;
+            height: 56px;
+            border-radius: 28px;
             border: none;
             color: white;
-            font-size: 1.8rem;
+            font-size: 1.1rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             outline: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             touch-action: none;
             user-select: none;
             -webkit-user-select: none;
+            overflow: hidden;
             transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
+        }
+
+        .mic-btn-text {
+            position: relative;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .mic-btn-visualizer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 5;
         }
 
         .top-panel .mic-btn {
@@ -398,8 +403,8 @@
         /* 按下激活状态 */
         .mic-btn.active {
             background: linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%) !important;
-            transform: scale(0.94);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            transform: scale(0.97);
+            box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
         }
 
         .mic-btn:disabled {
@@ -551,6 +556,20 @@
     <div id="translationScreen">
         <!-- 上半部分（B侧）- 旋转180度 -->
         <div class="panel top-panel" id="panelB">
+            <!-- 翻译结果 (物理屏幕中央) -->
+            <div class="transcript-container" id="transcriptB">
+                <div class="sentence interim">等待对方说话...</div>
+            </div>
+
+            <!-- 控制区 (物理屏幕上方) -->
+            <div class="control-row">
+                <button class="mic-btn" id="micBtnB" disabled>
+                    <span class="mic-btn-text">🎤 按住说话</span>
+                    <div class="mic-btn-visualizer" id="barsB"></div>
+                </button>
+            </div>
+
+            <!-- 状态面板 (物理屏幕最上方) -->
             <div class="panel-header">
                 <span>👤 上半屏 (B)</span>
                 <span id="sideLabelB">对方的语言: -</span>
@@ -559,25 +578,24 @@
                     <span id="statusTextB">未连接</span>
                 </div>
             </div>
-            
-            <!-- 显示 A 翻译成 B 语言的结果 -->
-            <div class="transcript-container" id="transcriptB">
-                <div class="sentence interim">等待对方说话...</div>
-            </div>
-
-            <div class="control-row">
-                <div class="visualizer-container">
-                    <div class="visualizer-bars" id="barsB">
-                        <!-- 可视化条 -->
-                    </div>
-                </div>
-                <!-- B 侧按住说话按钮（物理上靠屏幕上方） -->
-                <button class="mic-btn" id="micBtnB" disabled>🎤</button>
-            </div>
         </div>
 
         <!-- 下半部分（A侧）- 正常方向 -->
         <div class="panel bottom-panel" id="panelA">
+            <!-- 翻译结果 (物理屏幕中央) -->
+            <div class="transcript-container" id="transcriptA">
+                <div class="sentence interim">等待对方说话...</div>
+            </div>
+
+            <!-- 控制区 (物理屏幕下方) -->
+            <div class="control-row">
+                <button class="mic-btn" id="micBtnA" disabled>
+                    <span class="mic-btn-text">🎤 按住说话</span>
+                    <div class="mic-btn-visualizer" id="barsA"></div>
+                </button>
+            </div>
+
+            <!-- 状态面板 (物理屏幕最下方) -->
             <div class="panel-header">
                 <span>👤 下半屏 (A)</span>
                 <span id="sideLabelA">对方的语言: -</span>
@@ -585,21 +603,6 @@
                     <span class="status-dot" id="statusDotA"></span>
                     <span id="statusTextA">未连接</span>
                 </div>
-            </div>
-            
-            <!-- 显示 B 翻译成 A 语言的结果 -->
-            <div class="transcript-container" id="transcriptA">
-                <div class="sentence interim">等待对方说话...</div>
-            </div>
-
-            <div class="control-row">
-                <div class="visualizer-container">
-                    <div class="visualizer-bars" id="barsA">
-                        <!-- 可视化条 -->
-                    </div>
-                </div>
-                <!-- A 侧按住说话按钮 -->
-                <button class="mic-btn" id="micBtnA" disabled>🎤</button>
             </div>
         </div>
 
