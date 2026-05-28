@@ -83,6 +83,7 @@ class WebTranslateClient:
 
         if self.source_language:
             session["input_audio_transcription"] = {
+                "model": "qwen3-asr-flash-realtime",
                 "language": self.source_language
             }
 
@@ -122,13 +123,16 @@ class WebTranslateClient:
 
         self._debounce_task = asyncio.create_task(_runner())
 
-    def _call_text_callback(self, callback, text: str, is_final: bool):
+    def _call_text_callback(self, callback, text: str, is_final: bool, stash: str = None):
         if not callback:
             return
         try:
-            callback(text, is_final)
+            callback(text, is_final, stash=stash)
         except TypeError:
-            callback(text)
+            try:
+                callback(text, is_final)
+            except TypeError:
+                callback(text)
 
     def _call_asr_callback(self, callback, text: str, is_final: bool):
         if not callback:
@@ -245,7 +249,7 @@ class WebTranslateClient:
             "type": "session.update",
             "session": self._build_session_config()
         }
-        pass # print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
+        print(f"发送会话配置: {json.dumps(config, indent=2, ensure_ascii=False)}")
         await self.ws.send(json.dumps(config))
 
     async def update_session(
@@ -328,6 +332,8 @@ class WebTranslateClient:
                 event = json.loads(message)
                 event_type = event.get("type")
                 pass # print(f"[{timestamp}] WebTranslateClient接收到事件: {event_type}")
+                if 'transcription' in (event_type or ''):
+                    print(f"[{timestamp}] ★ ASR事件: {event_type} => {json.dumps(event, ensure_ascii=False)[:300]}")
                 
                 if event_type == "response.audio_transcript.delta":
                     text = event.get("transcript", "")
@@ -347,14 +353,25 @@ class WebTranslateClient:
                     if text:
                         await self._debounced_emit_text(text, True)
                         self._call_text_callback(on_text_received, text, False)
+                elif event_type == "response.audio_transcript.text":
+                    text = event.get("text", "")
+                    stash = event.get("stash", "")
+                    if text or stash:
+                        await self._debounced_emit_text(text + (" " + stash if stash else ""), True)
+                        self._call_text_callback(on_text_received, text, False, stash=stash)
                 elif event_type == "conversation.item.input_audio_transcription.delta":
                     text = event.get("delta", "")
-                    pass # print(f"[{timestamp}] 接收到 ASR 文本片段: '{text}'")
+                    print(f"[{timestamp}] 接收到 ASR 文本片段(delta): '{text}'")
+                    if text:
+                        self._call_asr_callback(on_asr_received, text, False)
+                elif event_type == "conversation.item.input_audio_transcription.text":
+                    text = event.get("text", "") or event.get("delta", "")
+                    print(f"[{timestamp}] 接收到 ASR 文本片段(text): '{text}'")
                     if text:
                         self._call_asr_callback(on_asr_received, text, False)
                 elif event_type == "conversation.item.input_audio_transcription.completed":
-                    text = event.get("transcript", "")
-                    pass # print(f"[{timestamp}] 接收到 ASR 最终文本: '{text}'")
+                    text = event.get("transcript", "") or event.get("text", "")
+                    print(f"[{timestamp}] 接收到 ASR 最终文本: '{text}'")
                     if text:
                         self._call_asr_callback(on_asr_received, text, True)
                 
@@ -393,30 +410,29 @@ class WebTranslateClient:
                 # 删除重复分支：已在上方统一处理 response.audio_transcript.done
                         
                 elif event_type == "session.updated":
-                    pass # print(f"[{timestamp}] 会话配置已更新")
+                    print(f"[{timestamp}] 会话配置已更新: {json.dumps(event, ensure_ascii=False)[:500]}")
                     
+                elif event_type == "error":
+                    print(f"[{timestamp}] ⚠️ API 错误: {json.dumps(event, ensure_ascii=False)}")
+
                 else:
-                    pass # print(f"[{timestamp}] 未处理的事件类型: {event_type}")
+                    print(f"[{timestamp}] 未处理的事件类型: {event_type} => {json.dumps(event, ensure_ascii=False)[:300]}")
                     # if len(str(event)) < 500:  # 只打印短消息
                         # print(f"[{timestamp}] 事件内容: {event}")
                     
                     # 不完整的识别
                     if 'text' in event:
-                        # 拼接结果
-                        result = event['text']
-                        if event['stash'].startswith(' '):
-                            result += f" ... [{event['stash'][1:]}]"
-                        else:
-                            result += f" ... [{event['stash']}]"
-
+                        text = event.get("text", "")
+                        stash = event.get("stash", "")
+                        result = text + (" " + stash if stash else "")
                         await self._debounced_emit_text(result, True)
-                        self._call_text_callback(on_text_received, result, False)
+                        self._call_text_callback(on_text_received, text, False, stash=stash)
                             
         except websockets.exceptions.ConnectionClosed as e:
-            pass # print(f"[WARNING] 连接已关闭: {e}")
+            print(f"[WARNING] 连接已关闭: {e}")
             self.is_connected = False
         except Exception as e:
-            pass # print(f"[ERROR] 消息处理时发生未知错误: {e}")
+            print(f"[ERROR] 消息处理时发生未知错误: {e}")
             traceback.print_exc()
             self.is_connected = False
 

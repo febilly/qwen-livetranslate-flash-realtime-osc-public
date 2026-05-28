@@ -314,46 +314,55 @@
             margin-bottom: 4px;
             animation: fadeIn 0.3s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            max-width: 80%;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
             word-wrap: break-word;
             white-space: pre-wrap;
         }
 
         .sentence.final.translation {
-            align-self: flex-start;
             text-align: left;
             background: #ffffff;
-            border-radius: 16px 16px 16px 4px;
+            border-radius: 12px;
             color: var(--color-text-dark);
             font-weight: 600;
             border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .sentence.interim.translation {
-            align-self: flex-start;
             text-align: left;
             background: rgba(255, 255, 255, 0.6);
-            border-radius: 16px 16px 16px 4px;
+            border-radius: 12px;
             color: var(--color-text-light);
             font-style: italic;
             border: 1px dashed rgba(0, 0, 0, 0.05);
         }
 
+        .sentence.interim.translation .confirmed {
+            color: var(--color-text-dark);
+            font-style: normal;
+            font-weight: normal;
+        }
+
+        .sentence.interim.translation .pending {
+            color: var(--color-text-light);
+            font-style: italic;
+        }
+
         .sentence.final.asr {
-            align-self: flex-end;
-            text-align: right;
+            text-align: left;
             background: rgba(0, 0, 0, 0.06);
-            border-radius: 16px 16px 4px 16px;
+            border-radius: 12px;
             color: var(--color-text-light);
             font-weight: normal;
             font-size: 1rem;
         }
 
         .sentence.interim.asr {
-            align-self: flex-end;
-            text-align: right;
+            text-align: left;
             background: rgba(0, 0, 0, 0.03);
-            border-radius: 16px 16px 4px 16px;
+            border-radius: 12px;
             color: var(--color-text-light);
             font-style: italic;
             font-size: 1rem;
@@ -603,6 +612,10 @@
                     <input type="checkbox" id="enableStereoRouting">
                     <span id="labelEnableStereo">开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)</span>
                 </label>
+                <label class="checkbox-group" style="margin-top: 8px;">
+                    <input type="checkbox" id="showAsrTranscript" checked>
+                    <span id="labelShowAsrTranscript">显示说话人转写原文 (默认开启)</span>
+                </label>
             </div>
 
             <button class="start-btn" id="startBtn">开启面对面翻译</button>
@@ -721,6 +734,7 @@
                 this.microphoneSelect = document.getElementById('microphoneSelect');
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
                 this.enableStereoRouting = document.getElementById('enableStereoRouting');
+                this.showAsrTranscript = document.getElementById('showAsrTranscript');
                 this.startBtn = document.getElementById('startBtn');
                 this.uiLangSelect = document.getElementById('uiLangSelect');
 
@@ -793,6 +807,11 @@
                     }
                 };
                 this.enableStereoRouting.onchange = saveHandler;
+                this.showAsrTranscript.onchange = () => {
+                    saveHandler();
+                    this.renderTranscript('A');
+                    this.renderTranscript('B');
+                };
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
                 this.uiLangSelect.onchange = () => {
                     this.currentUILang = this.uiLangSelect.value;
@@ -928,6 +947,9 @@
                     if (typeof s.enableStereoRouting === 'boolean') {
                         this.enableStereoRouting.checked = s.enableStereoRouting;
                     }
+                    if (typeof s.showAsrTranscript === 'boolean') {
+                        this.showAsrTranscript.checked = s.showAsrTranscript;
+                    }
                     if (s.selectedMicrophoneId) {
                         this.selectedMicrophoneId = s.selectedMicrophoneId;
                     }
@@ -944,6 +966,7 @@
                     voiceB: this.voiceSelectB.value,
                     disableEchoCancellation: this.disableEchoCancellation.checked,
                     enableStereoRouting: this.enableStereoRouting.checked,
+                    showAsrTranscript: this.showAsrTranscript.checked,
                     selectedMicrophoneId: this.microphoneSelect.value || ''
                 };
                 localStorage.setItem(this.storageKeySettings, JSON.stringify(settings));
@@ -1114,6 +1137,7 @@
                         micLabel: "Microphone",
                         disableEchoLabel: "Disable Echo Cancellation (may improve pickup on some devices)",
                         enableStereoLabel: "Enable Stereo Routing (A-Left, B-Right, default off)",
+                        showAsrLabel: "Show Speaker's Original Transcript (Enabled by default)",
                         startBtnText: "Start Translation",
                         alertApiKey: "Please enter DashScope API Key",
                         alertMic: "Please grant microphone permission before starting",
@@ -1144,6 +1168,7 @@
                         micLabel: "麦克风设备",
                         disableEchoLabel: "禁用浏览器回声消除 (可能提高某些设备的拾音效果)",
                         enableStereoLabel: "开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)",
+                        showAsrLabel: "显示说话人转写原文 (默认开启)",
                         startBtnText: "开启面对面翻译",
                         alertApiKey: "请输入 DashScope API Key",
                         alertMic: "请允许麦克风权限后再开始",
@@ -1197,6 +1222,7 @@
                 document.getElementById('labelMicrophone').textContent = t.micLabel;
                 document.getElementById('labelDisableEcho').textContent = t.disableEchoLabel;
                 document.getElementById('labelEnableStereo').textContent = t.enableStereoLabel;
+                document.getElementById('labelShowAsrTranscript').textContent = t.showAsrLabel;
 
                 this.startBtn.textContent = t.startBtnText;
             }
@@ -1324,7 +1350,7 @@
                                 this.updateStatus(side, 'connected', uiMsg.statusConnected);
                             } else if (message.type === 'translation_text') {
                                 const targetSide = side === 'A' ? 'B' : 'A';
-                                this.handleIncomingText(targetSide, message.data, message.is_final, false);
+                                this.handleIncomingText(targetSide, message.data, message.is_final, false, message.stash);
                             } else if (message.type === 'asr_text') {
                                 this.handleIncomingText(side, message.data, message.is_final, true);
                             } else if (message.type === 'error') {
@@ -1371,7 +1397,7 @@
                 }));
             }
 
-            handleIncomingText(targetSide, text, isFinal, isAsr = false) {
+            handleIncomingText(targetSide, text, isFinal, isAsr = false, stash = null) {
                 if (targetSide === 'A') {
                     if (isAsr) {
                         if (isFinal) {
@@ -1385,7 +1411,7 @@
                             if (text) this.finalSentencesA.push({ text, isAsr: false });
                             this.interimTransA = null;
                         } else {
-                            this.interimTransA = text;
+                            this.interimTransA = { text: text, stash: stash };
                         }
                     }
                     this.renderTranscript('A');
@@ -1402,7 +1428,7 @@
                             if (text) this.finalSentencesB.push({ text, isAsr: false });
                             this.interimTransB = null;
                         } else {
-                            this.interimTransB = text;
+                            this.interimTransB = { text: text, stash: stash };
                         }
                     }
                     this.renderTranscript('B');
@@ -1415,20 +1441,30 @@
                 const interimAsr = side === 'A' ? this.interimAsrA : this.interimAsrB;
                 const interimTrans = side === 'A' ? this.interimTransA : this.interimTransB;
                 const ui = this.getUIStrings(side);
+                const showAsr = this.showAsrTranscript ? this.showAsrTranscript.checked : true;
 
                 let html = "";
                 finals.forEach((item) => {
+                    if (item.isAsr && !showAsr) return;
                     const bubbleClass = item.isAsr ? "asr" : "translation";
-                    const prefix = item.isAsr ? (ui.asrPrefix || "Me: ") : "";
+                    const prefix = ""; // No prefix for ASR
                     html += `<div class="sentence final ${bubbleClass}">${prefix}${item.text}</div>`;
                 });
 
-                if (interimAsr) {
-                    const prefix = ui.asrPrefix || "Me: ";
+                if (interimAsr && showAsr) {
+                    const prefix = ""; // No prefix for ASR
                     html += `<div class="sentence interim asr">${prefix}${interimAsr}</div>`;
                 }
                 if (interimTrans) {
-                    html += `<div class="sentence interim translation">${interimTrans}</div>`;
+                    if (typeof interimTrans === 'object' && interimTrans !== null) {
+                        const confirmed = interimTrans.text || "";
+                        const pending = interimTrans.stash || "";
+                        if (confirmed || pending) {
+                            html += `<div class="sentence interim translation"><span class="confirmed">${confirmed}</span><span class="pending">${pending}</span></div>`;
+                        }
+                    } else {
+                        html += `<div class="sentence interim translation">${interimTrans}</div>`;
+                    }
                 }
 
                 if (!html) {
