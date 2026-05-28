@@ -115,6 +115,14 @@ class WebTranslateClient:
 
         self._debounce_task = asyncio.create_task(_runner())
 
+    def _call_text_callback(self, callback, text: str, is_final: bool):
+        if not callback:
+            return
+        try:
+            callback(text, is_final)
+        except TypeError:
+            callback(text)
+
     async def pause_audio_processing(self):
         """暂停处理语音数据"""
         if self.is_processing_audio:  # 只在处理中时才执行暂停逻辑
@@ -310,22 +318,19 @@ class WebTranslateClient:
                     pass # print(f"[{timestamp}] 接收到翻译文本片段: '{text}'")
                     if text:
                         await self._debounced_emit_text(text, True)
-                        if on_text_received:
-                            on_text_received(text)
+                        self._call_text_callback(on_text_received, text, False)
                 elif event_type == "response.text.delta":
                     text = event.get("delta", "")
                     pass # print(f"[{timestamp}] 接收到文本delta: '{text}'")
                     if text:
                         await self._debounced_emit_text(text, True)
-                        if on_text_received:
-                            on_text_received(text)
+                        self._call_text_callback(on_text_received, text, False)
                 elif event_type == "response.output_text.delta":
                     text = event.get("delta", "")
                     pass # print(f"[{timestamp}] 接收到output_text delta: '{text}'")
                     if text:
                         await self._debounced_emit_text(text, True)
-                        if on_text_received:
-                            on_text_received(text)
+                        self._call_text_callback(on_text_received, text, False)
                 
                 elif event_type == "response.audio.delta" and self.audio_enabled:
                     audio_b64 = event.get("delta", "")
@@ -351,16 +356,14 @@ class WebTranslateClient:
                     text = event.get("transcript", "")
                     if text:
                         await self._debounced_emit_text(text, False)
-                        if on_text_received:
-                            on_text_received(text)
+                        self._call_text_callback(on_text_received, text, True)
                         
                 elif event_type == "response.text.done":
                     pass # print(f"[{timestamp}] 翻译文本完成。")
                     text = event.get("text", "")
                     if text:
                         await self._debounced_emit_text(text, False)
-                        if on_text_received:
-                            on_text_received(text)
+                        self._call_text_callback(on_text_received, text, True)
                 # 删除重复分支：已在上方统一处理 response.audio_transcript.done
                         
                 elif event_type == "session.updated":
@@ -381,6 +384,7 @@ class WebTranslateClient:
                             result += f" ... [{event['stash']}]"
 
                         await self._debounced_emit_text(result, True)
+                        self._call_text_callback(on_text_received, result, False)
                             
         except websockets.exceptions.ConnectionClosed as e:
             pass # print(f"[WARNING] 连接已关闭: {e}")

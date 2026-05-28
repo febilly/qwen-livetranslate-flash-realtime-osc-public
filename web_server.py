@@ -152,7 +152,7 @@ async def websocket_endpoint(websocket: WebSocket):
     heartbeat_task = asyncio.create_task(send_heartbeat(websocket))
     logger.info("心跳任务已启动")
 
-    def on_text_received(text: str):
+    def on_text_received(text: str, is_final: bool = False):
         """处理接收到的翻译文本"""
         nonlocal websocket_active
         if not websocket_active:
@@ -160,9 +160,9 @@ async def websocket_endpoint(websocket: WebSocket):
         try:
             timestamp = time.strftime("%H:%M:%S")
             asyncio.create_task(
-                websocket.send_json({"type": "translation_text", "data": text})
+                websocket.send_json({"type": "translation_text", "data": text, "is_final": is_final})
             )
-            logger.info(f"[{timestamp}] 服务端发送翻译文本: {text}")
+            logger.info(f"[{timestamp}] 服务端发送翻译文本: {text} (is_final: {is_final})")
         except Exception as e:
             logger.error(f"发送翻译文本失败: {e}")
             websocket_active = False
