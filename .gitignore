@@ -4,3 +4,6 @@
 *.flac
 .env
 *.pyc
+android/.gradle/
+android/**/build/
+android/local.properties

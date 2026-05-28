@@ -25,6 +25,23 @@ python start_server.py
 
 然后在手机浏览器打开 `http://127.0.0.1:9023`。麦克风权限通常只会在 `localhost` / `127.0.0.1` 这类本机地址上正常放行；如果用局域网 IP 访问，移动浏览器可能会因为不是 HTTPS 而禁用麦克风。
 
+## Android APK
+
+仓库里的 `android/` 是一个 WebView 壳，APK 启动后会先在应用内启动 Python 后端，再用 WebView 打开 `http://127.0.0.1:9023/`。
+
+```bash
+cd android
+./gradlew assembleDebug
+```
+
+Windows PowerShell 里可以用：
+
+```powershell
+.\android\gradlew.bat -p android assembleDebug
+```
+
+构建产物在 `android/app/build/outputs/apk/debug/app-debug.apk`。
+
 Release 中有已经打包好的 exe 可以直接下载使用。（当然你得先准备好 API Key）
 
 我好懒，其他的懒得写了，GLHF
