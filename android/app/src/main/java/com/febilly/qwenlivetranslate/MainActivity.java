@@ -2,6 +2,9 @@ package com.febilly.qwenlivetranslate;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.net.http.SslError;
 import android.os.Build;
@@ -9,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
 import android.webkit.PermissionRequest;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebChromeClient;
@@ -23,6 +27,7 @@ import com.chaquo.python.Python;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,6 +72,7 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);
         }
+        webView.addJavascriptInterface(new ClipboardBridge(), "AndroidClipboard");
 
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -79,6 +85,14 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    return !isLocalUrl(request.getUrl().toString());
+                }
+                return false;
+            }
+
+            @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 return super.shouldInterceptRequest(view, request);
             }
@@ -88,6 +102,34 @@ public class MainActivity extends Activity {
                 handler.cancel();
             }
         });
+    }
+
+    private boolean isLocalUrl(String rawUrl) {
+        try {
+            URI uri = URI.create(rawUrl);
+            String host = uri.getHost();
+            return "127.0.0.1".equals(host) || "localhost".equals(host);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private class ClipboardBridge {
+        @JavascriptInterface
+        public String getText() {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard == null || !clipboard.hasPrimaryClip()) {
+                return "";
+            }
+
+            ClipData clip = clipboard.getPrimaryClip();
+            if (clip == null || clip.getItemCount() == 0) {
+                return "";
+            }
+
+            CharSequence text = clip.getItemAt(0).coerceToText(MainActivity.this);
+            return text == null ? "" : text.toString();
+        }
     }
 
     private void startPythonBackend() {

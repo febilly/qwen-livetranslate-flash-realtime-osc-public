@@ -87,6 +87,11 @@
             margin-bottom: 6px;
         }
 
+        .api-key-row {
+            display: flex;
+            gap: 8px;
+        }
+
         .api-key-group input {
             width: 100%;
             padding: 12px 16px;
@@ -99,6 +104,22 @@
 
         .api-key-group input:focus {
             border-color: var(--color-a-primary);
+        }
+
+        .paste-btn {
+            flex: 0 0 auto;
+            padding: 0 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            background: #ffffff;
+            color: var(--color-text-dark);
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .paste-btn:active {
+            background: #f3f4f6;
         }
 
         .sides-config {
@@ -517,7 +538,10 @@
 
             <div class="api-key-group">
                 <label for="apiKeyInput" id="labelApiKey">DashScope API Key</label>
-                <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+                <div class="api-key-row">
+                    <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+                    <button type="button" class="paste-btn" id="pasteApiKeyBtn">Paste</button>
+                </div>
             </div>
 
             <div class="sides-config">
@@ -736,6 +760,7 @@
                 this.enableStereoRouting = document.getElementById('enableStereoRouting');
                 this.showAsrTranscript = document.getElementById('showAsrTranscript');
                 this.startBtn = document.getElementById('startBtn');
+                this.pasteApiKeyBtn = document.getElementById('pasteApiKeyBtn');
                 this.uiLangSelect = document.getElementById('uiLangSelect');
 
                 // 翻译页元素
@@ -790,6 +815,7 @@
             bindEvents() {
                 this.startBtn.onclick = () => this.startTranslation();
                 this.endBtn.onclick = () => this.stopTranslation();
+                this.pasteApiKeyBtn.onclick = () => this.pasteApiKey();
 
                 // 监听输入并保存
                 this.apiKeyInput.oninput = () => {
@@ -930,6 +956,25 @@
                         callback(false);
                     }
                 });
+            }
+
+            async pasteApiKey() {
+                let text = "";
+                try {
+                    if (window.AndroidClipboard && typeof window.AndroidClipboard.getText === 'function') {
+                        text = window.AndroidClipboard.getText() || "";
+                    } else if (navigator.clipboard && navigator.clipboard.readText) {
+                        text = await navigator.clipboard.readText();
+                    }
+                } catch (error) {
+                    console.warn('读取剪贴板失败:', error);
+                }
+
+                text = (text || "").trim();
+                if (!text) return;
+                this.apiKeyInput.value = text;
+                localStorage.setItem(this.storageKeyApiKey, text);
+                this.apiKeyInput.focus();
             }
 
             loadSavedSettings() {
@@ -1131,6 +1176,7 @@
                         desc: "Designed for mobile, split screen, supports dual-stream connections and stereo routing",
                         apiKeyLabel: "DashScope API Key",
                         apiKeyPlaceholder: "sk-...",
+                        pasteApiKey: "Paste",
                         sideBTitle: "👤 Top Panel (Side B)",
                         sideATitle: "👤 Bottom Panel (Side A)",
                         langLabel: "Native Language",
@@ -1193,6 +1239,7 @@
                         desc: "为手机设计，上下一分为二，支持双流独立连接与双声道路由",
                         apiKeyLabel: "DashScope API Key",
                         apiKeyPlaceholder: "输入 API Key",
+                        pasteApiKey: "粘贴",
                         sideBTitle: "👤 上半屏 (B 侧)",
                         sideATitle: "👤 下半屏 (A 侧)",
                         langLabel: "发言母语",
@@ -1316,6 +1363,7 @@
                 document.getElementById('uiDesc').textContent = t.desc;
                 document.getElementById('labelApiKey').textContent = t.apiKeyLabel;
                 document.getElementById('apiKeyInput').placeholder = t.apiKeyPlaceholder;
+                this.pasteApiKeyBtn.textContent = t.pasteApiKey;
                 document.getElementById('titleSideB').textContent = t.sideBTitle;
                 document.getElementById('titleSideA').textContent = t.sideATitle;
                 
