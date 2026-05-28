@@ -703,8 +703,13 @@
                 this.apiKeyInput.value = localStorage.getItem(this.storageKeyApiKey) || '';
                 this.loadSavedSettings();
 
-                // UI 语言初始化，默认回落为英文 (en)
-                this.currentUILang = localStorage.getItem('livetranslate_ui_lang') || 'en';
+                // UI 语言初始化：检测浏览器语言，如果有对应翻译则使用，否则回落为英文 (en)
+                let defaultUILang = 'en';
+                const browserLang = navigator.language || navigator.userLanguage || '';
+                if (browserLang.toLowerCase().startsWith('zh')) {
+                    defaultUILang = 'zh';
+                }
+                this.currentUILang = localStorage.getItem('livetranslate_ui_lang') || defaultUILang;
                 this.applyUILang(this.currentUILang);
 
                 // 生成可视化条
