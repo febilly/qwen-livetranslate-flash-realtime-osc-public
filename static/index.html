@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>面对面实时语音翻译 - Qwen</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -42,7 +42,7 @@
             align-items: center;
             justify-content: center;
             flex: 1;
-            padding: 20px;
+            padding: calc(20px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) calc(20px + env(safe-area-inset-left));
             background: linear-gradient(135deg, #e0f2fe 0%, #dcfce7 100%);
         }
 
@@ -230,10 +230,16 @@
             background-color: var(--color-b-light);
             transform: rotate(180deg);
             border-bottom: 1px dashed rgba(0, 0, 0, 0.1);
+            padding-bottom: calc(20px + env(safe-area-inset-top));
+            padding-left: calc(24px + env(safe-area-inset-right));
+            padding-right: calc(24px + env(safe-area-inset-left));
         }
 
         .bottom-panel {
             background-color: var(--color-a-light);
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+            padding-left: calc(24px + env(safe-area-inset-left));
+            padding-right: calc(24px + env(safe-area-inset-right));
         }
 
         .panel-header {
@@ -448,43 +454,6 @@
             </div>
 
             <div class="sides-config">
-                <!-- A侧配置 -->
-                <div class="side-card side-a">
-                    <div class="side-title">👤 下半屏 (A 侧)</div>
-                    <div class="form-group">
-                        <label for="langSelectA">发言母语</label>
-                        <select id="langSelectA">
-                            <option value="zh" selected>中文 (Chinese)</option>
-                            <option value="en">英语 (English)</option>
-                            <option value="ja">日语 (Japanese)</option>
-                            <option value="ko">韩语 (Korean)</option>
-                            <option value="ru">俄语 (Russian)</option>
-                            <option value="fr">法语 (French)</option>
-                            <option value="de">德语 (German)</option>
-                            <option value="es">西班牙语 (Spanish)</option>
-                            <option value="pt">葡萄牙语 (Portuguese)</option>
-                            <option value="ar">阿拉伯语 (Arabic)</option>
-                            <option value="id">印尼语 (Indonesian)</option>
-                            <option value="th">泰语 (Thai)</option>
-                            <option value="vi">越南语 (Vietnamese)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="voiceSelectA">收听音色 (听对方说话的翻译音色)</label>
-                        <select id="voiceSelectA">
-                            <option value="Tina" selected>甜甜 Tina [英文/中文]</option>
-                            <option value="Cindy">Cindy [中文/英文]</option>
-                            <option value="Raymond">Raymond [男声]</option>
-                            <option value="Ethan">Ethan [男声]</option>
-                            <option value="Serena">Serena [女声]</option>
-                            <option value="Harvey">Harvey [男声]</option>
-                            <option value="Jakub">Jakub [默认]</option>
-                            <option value="__clone_once">声音复刻：会话开始复刻一次</option>
-                            <option value="__clone_always">声音复刻：每次生成前复刻</option>
-                        </select>
-                    </div>
-                </div>
-
                 <!-- B侧配置 -->
                 <div class="side-card side-b">
                     <div class="side-title">👤 上半屏 (B 侧)</div>
@@ -516,6 +485,43 @@
                             <option value="Serena">Serena [女声]</option>
                             <option value="Harvey">Harvey [男声]</option>
                             <option value="Jakub" selected>Jakub [默认]</option>
+                            <option value="__clone_once">声音复刻：会话开始复刻一次</option>
+                            <option value="__clone_always">声音复刻：每次生成前复刻</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- A侧配置 -->
+                <div class="side-card side-a">
+                    <div class="side-title">👤 下半屏 (A 侧)</div>
+                    <div class="form-group">
+                        <label for="langSelectA">发言母语</label>
+                        <select id="langSelectA">
+                            <option value="zh" selected>中文 (Chinese)</option>
+                            <option value="en">英语 (English)</option>
+                            <option value="ja">日语 (Japanese)</option>
+                            <option value="ko">韩语 (Korean)</option>
+                            <option value="ru">俄语 (Russian)</option>
+                            <option value="fr">法语 (French)</option>
+                            <option value="de">德语 (German)</option>
+                            <option value="es">西班牙语 (Spanish)</option>
+                            <option value="pt">葡萄牙语 (Portuguese)</option>
+                            <option value="ar">阿拉伯语 (Arabic)</option>
+                            <option value="id">印尼语 (Indonesian)</option>
+                            <option value="th">泰语 (Thai)</option>
+                            <option value="vi">越南语 (Vietnamese)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="voiceSelectA">收听音色 (听对方说话的翻译音色)</label>
+                        <select id="voiceSelectA">
+                            <option value="Tina" selected>甜甜 Tina [英文/中文]</option>
+                            <option value="Cindy">Cindy [中文/英文]</option>
+                            <option value="Raymond">Raymond [男声]</option>
+                            <option value="Ethan">Ethan [男声]</option>
+                            <option value="Serena">Serena [女声]</option>
+                            <option value="Harvey">Harvey [男声]</option>
+                            <option value="Jakub">Jakub [默认]</option>
                             <option value="__clone_once">声音复刻：会话开始复刻一次</option>
                             <option value="__clone_always">声音复刻：每次生成前复刻</option>
                         </select>
