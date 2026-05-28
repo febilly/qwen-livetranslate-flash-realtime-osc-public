@@ -451,21 +451,27 @@
     <div id="configScreen">
         <div class="config-card">
             <div class="config-header">
-                <h1>面对面双向语音翻译</h1>
-                <p>为手机设计，上下一分为二，支持双流独立连接与双声道路由</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <h1 id="uiTitle">面对面双向语音翻译</h1>
+                    <select id="uiLangSelect" style="width: auto; padding: 6px 12px; border-radius: 8px; font-size: 0.9rem; border: 1px solid #d1d5db; background-color: #ffffff;">
+                        <option value="en" selected>English</option>
+                        <option value="zh">中文</option>
+                    </select>
+                </div>
+                <p id="uiDesc">为手机设计，上下一分为二，支持双流独立连接与双声道路由</p>
             </div>
 
             <div class="api-key-group">
-                <label for="apiKeyInput">DashScope API Key</label>
+                <label for="apiKeyInput" id="labelApiKey">DashScope API Key</label>
                 <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
             </div>
 
             <div class="sides-config">
                 <!-- B侧配置 -->
                 <div class="side-card side-b">
-                    <div class="side-title">👤 上半屏 (B 侧)</div>
+                    <div class="side-title" id="titleSideB">👤 上半屏 (B 侧)</div>
                     <div class="form-group">
-                        <label for="langSelectB">发言母语</label>
+                        <label for="langSelectB" class="labelLang">发言母语</label>
                         <select id="langSelectB">
                             <option value="zh">中文 (Chinese)</option>
                             <option value="en" selected>英语 (English)</option>
@@ -483,7 +489,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="voiceSelectB">收听音色 (听对方说话的翻译音色)</label>
+                        <label for="voiceSelectB" class="labelVoice">收听音色 (听对方说话的翻译音色)</label>
                         <select id="voiceSelectB">
                             <option value="Tina">甜甜 Tina [英文/中文]</option>
                             <option value="Cindy">Cindy [中文/英文]</option>
@@ -500,9 +506,9 @@
 
                 <!-- A侧配置 -->
                 <div class="side-card side-a">
-                    <div class="side-title">👤 下半屏 (A 侧)</div>
+                    <div class="side-title" id="titleSideA">👤 下半屏 (A 侧)</div>
                     <div class="form-group">
-                        <label for="langSelectA">发言母语</label>
+                        <label for="langSelectA" class="labelLang">发言母语</label>
                         <select id="langSelectA">
                             <option value="zh" selected>中文 (Chinese)</option>
                             <option value="en">英语 (English)</option>
@@ -520,7 +526,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="voiceSelectA">收听音色 (听对方说话的翻译音色)</label>
+                        <label for="voiceSelectA" class="labelVoice">收听音色 (听对方说话的翻译音色)</label>
                         <select id="voiceSelectA">
                             <option value="Tina" selected>甜甜 Tina [英文/中文]</option>
                             <option value="Cindy">Cindy [中文/英文]</option>
@@ -537,7 +543,7 @@
             </div>
 
             <div class="form-group" style="margin-bottom: 20px;">
-                <label for="microphoneSelect">麦克风设备</label>
+                <label for="microphoneSelect" id="labelMicrophone">麦克风设备</label>
                 <select id="microphoneSelect">
                     <option value="">加载中...</option>
                 </select>
@@ -546,11 +552,11 @@
             <div class="common-settings">
                 <label class="checkbox-group">
                     <input type="checkbox" id="disableEchoCancellation">
-                    <span>禁用浏览器回声消除 (可能提高某些设备的拾音效果)</span>
+                    <span id="labelDisableEcho">禁用浏览器回声消除 (可能提高某些设备的拾音效果)</span>
                 </label>
                 <label class="checkbox-group" style="margin-top: 8px;">
                     <input type="checkbox" id="enableStereoRouting">
-                    <span>开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)</span>
+                    <span id="labelEnableStereo">开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)</span>
                 </label>
             </div>
 
@@ -577,7 +583,7 @@
 
             <!-- 状态面板 (物理屏幕最上方) -->
             <div class="panel-header">
-                <span>👤 上半屏 (B)</span>
+                <span id="panelTitleB">👤 上半屏 (B)</span>
                 <span id="sideLabelB">对方的语言: -</span>
                 <div class="status-badge">
                     <span class="status-dot" id="statusDotB"></span>
@@ -603,7 +609,7 @@
 
             <!-- 状态面板 (物理屏幕最下方) -->
             <div class="panel-header">
-                <span>👤 下半屏 (A)</span>
+                <span id="panelTitleA">👤 下半屏 (A)</span>
                 <span id="sideLabelA">对方的语言: -</span>
                 <div class="status-badge">
                     <span class="status-dot" id="statusDotA"></span>
@@ -669,6 +675,7 @@
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
                 this.enableStereoRouting = document.getElementById('enableStereoRouting');
                 this.startBtn = document.getElementById('startBtn');
+                this.uiLangSelect = document.getElementById('uiLangSelect');
 
                 // 翻译页元素
                 this.translationScreen = document.getElementById('translationScreen');
@@ -678,6 +685,7 @@
                 this.statusDotA = document.getElementById('statusDotA');
                 this.statusTextA = document.getElementById('statusTextA');
                 this.sideLabelA = document.getElementById('sideLabelA');
+                this.panelTitleA = document.getElementById('panelTitleA');
                 this.transcriptA = document.getElementById('transcriptA');
                 this.barsA = document.getElementById('barsA');
                 this.micBtnA = document.getElementById('micBtnA');
@@ -686,6 +694,7 @@
                 this.statusDotB = document.getElementById('statusDotB');
                 this.statusTextB = document.getElementById('statusTextB');
                 this.sideLabelB = document.getElementById('sideLabelB');
+                this.panelTitleB = document.getElementById('panelTitleB');
                 this.transcriptB = document.getElementById('transcriptB');
                 this.barsB = document.getElementById('barsB');
                 this.micBtnB = document.getElementById('micBtnB');
@@ -693,6 +702,10 @@
                 // 载入保存的配置
                 this.apiKeyInput.value = localStorage.getItem(this.storageKeyApiKey) || '';
                 this.loadSavedSettings();
+
+                // UI 语言初始化，默认回落为英文 (en)
+                this.currentUILang = localStorage.getItem('livetranslate_ui_lang') || 'en';
+                this.applyUILang(this.currentUILang);
 
                 // 生成可视化条
                 this.createVisualizerBars(this.barsA);
@@ -729,6 +742,10 @@
                 };
                 this.enableStereoRouting.onchange = saveHandler;
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
+                this.uiLangSelect.onchange = () => {
+                    this.currentUILang = this.uiLangSelect.value;
+                    this.applyUILang(this.currentUILang);
+                };
 
                 // 绑定按住说话事件 (A侧)
                 this.bindMicEvents(this.micBtnA, (active) => this.setAudioRecordingState('A', active));
@@ -741,19 +758,20 @@
                 let deactivatingToggle = false;
                 let pendingTimeout = null;
                 const textSpan = btn.querySelector('.mic-btn-text');
-                const defaultText = "🎤 按住或轻点说话";
+                const getUI = () => this.getUIStrings(btn.id === 'micBtnA' ? 'A' : 'B');
 
                 const startPress = (e) => {
                     e.preventDefault();
                     if (btn.disabled) return;
 
+                    const ui = getUI();
                     const mode = btn.dataset.recordingMode;
                     if (mode === 'toggle') {
                         // 持续录音中点击 -> 停止录音
                         deactivatingToggle = true;
                         btn.classList.remove('active');
                         btn.dataset.recordingMode = '';
-                        if (textSpan) textSpan.textContent = defaultText;
+                        if (textSpan) textSpan.textContent = ui.defaultMic;
                         callback(false);
                     } else {
                         // 开始录音，初始为 pending 状态
@@ -761,7 +779,7 @@
                         pressStartTime = Date.now();
                         btn.classList.add('active');
                         btn.dataset.recordingMode = 'pending';
-                        if (textSpan) textSpan.textContent = "🎙️ 正在说话...";
+                        if (textSpan) textSpan.textContent = ui.recording;
                         callback(true);
                         
                         try { btn.setPointerCapture(e.pointerId); } catch(err) {}
@@ -770,7 +788,7 @@
                         pendingTimeout = setTimeout(() => {
                             if (btn.dataset.recordingMode === 'pending') {
                                 btn.dataset.recordingMode = 'hold';
-                                if (textSpan) textSpan.textContent = "🎙️ 松开结束";
+                                if (textSpan) textSpan.textContent = ui.releaseToStop;
                             }
                         }, 350);
                     }
@@ -790,16 +808,17 @@
                         return;
                     }
 
+                    const ui = getUI();
                     const mode = btn.dataset.recordingMode;
                     if (mode === 'pending') {
                         // 在 350ms 内松开 -> 判断为短点 -> 进入持续录音模式
                         btn.dataset.recordingMode = 'toggle';
-                        if (textSpan) textSpan.textContent = "🎙️ 持续录音 (轻点停止)";
+                        if (textSpan) textSpan.textContent = ui.continuous;
                     } else if (mode === 'hold') {
                         // 超过 350ms 后松开 -> 判断为长按结束 -> 停止录音
                         btn.classList.remove('active');
                         btn.dataset.recordingMode = '';
-                        if (textSpan) textSpan.textContent = defaultText;
+                        if (textSpan) textSpan.textContent = ui.defaultMic;
                         callback(false);
                     }
                 };
@@ -813,11 +832,12 @@
                         pendingTimeout = null;
                     }
 
+                    const ui = getUI();
                     const mode = btn.dataset.recordingMode;
                     if (mode === 'pending' || mode === 'hold') {
                         btn.classList.remove('active');
                         btn.dataset.recordingMode = '';
-                        if (textSpan) textSpan.textContent = defaultText;
+                        if (textSpan) textSpan.textContent = ui.defaultMic;
                         callback(false);
                     }
                 };
@@ -826,6 +846,7 @@
                 btn.addEventListener('pointerup', stopPress);
                 btn.addEventListener('pointercancel', cancelPress);
                 btn.addEventListener('lostpointercapture', () => {
+                    const ui = getUI();
                     const mode = btn.dataset.recordingMode;
                     if (mode === 'pending' || mode === 'hold') {
                         if (pendingTimeout) {
@@ -834,7 +855,7 @@
                         }
                         btn.classList.remove('active');
                         btn.dataset.recordingMode = '';
-                        if (textSpan) textSpan.textContent = defaultText;
+                        if (textSpan) textSpan.textContent = ui.defaultMic;
                         callback(false);
                     }
                 });
@@ -1026,14 +1047,141 @@
                 return { voice: val, voice_clone_frequency: '' };
             }
 
+            // 双语翻译词典 (Bilingual UI Translation Dictionary)
+            getUITranslations() {
+                return {
+                    en: {
+                        title: "Face-to-Face Translator",
+                        desc: "Designed for mobile, split screen, supports dual-stream connections and stereo routing",
+                        apiKeyLabel: "DashScope API Key",
+                        apiKeyPlaceholder: "sk-...",
+                        sideBTitle: "👤 Top Panel (Side B)",
+                        sideATitle: "👤 Bottom Panel (Side A)",
+                        langLabel: "Native Language",
+                        voiceLabel: "Voice (to hear translation)",
+                        micLabel: "Microphone",
+                        disableEchoLabel: "Disable Echo Cancellation (may improve pickup on some devices)",
+                        enableStereoLabel: "Enable Stereo Routing (A-Left, B-Right, default off)",
+                        startBtnText: "Start Translation",
+                        alertApiKey: "Please enter DashScope API Key",
+                        alertMic: "Please grant microphone permission before starting",
+                        waiting: "Waiting for voice...",
+                        defaultMic: "🎤 Hold or Tap to Talk",
+                        recording: "🎙️ Recording...",
+                        releaseToStop: "🎙️ Release to Stop",
+                        continuous: "🎙️ Continuous (Tap to Stop)",
+                        panelTitleA: "👤 Bottom Panel (A)",
+                        panelTitleB: "👤 Top Panel (B)",
+                        targetLabel: "Target Language",
+                        statusConnecting: "Connecting...",
+                        statusConnected: "Ready",
+                        statusError: "Error",
+                        statusDisconnected: "Disconnected",
+                        statusClose: "Disconnected"
+                    },
+                    zh: {
+                        title: "面对面双向语音翻译",
+                        desc: "为手机设计，上下一分为二，支持双流独立连接与双声道路由",
+                        apiKeyLabel: "DashScope API Key",
+                        apiKeyPlaceholder: "输入 API Key",
+                        sideBTitle: "👤 上半屏 (B 侧)",
+                        sideATitle: "👤 下半屏 (A 侧)",
+                        langLabel: "发言母语",
+                        voiceLabel: "收听音色 (听对方说话的翻译音色)",
+                        micLabel: "麦克风设备",
+                        disableEchoLabel: "禁用浏览器回声消除 (可能提高某些设备的拾音效果)",
+                        enableStereoLabel: "开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)",
+                        startBtnText: "开启面对面翻译",
+                        alertApiKey: "请输入 DashScope API Key",
+                        alertMic: "请允许麦克风权限后再开始",
+                        waiting: "等待对方说话...",
+                        defaultMic: "🎤 按住或轻点说话",
+                        recording: "🎙️ 正在说话...",
+                        releaseToStop: "🎙️ 松开结束",
+                        continuous: "🎙️ 持续录音 (轻点停止)",
+                        panelTitleA: "👤 下半屏 (A)",
+                        panelTitleB: "👤 上半屏 (B)",
+                        targetLabel: "对方说的语言",
+                        statusConnecting: "连接中...",
+                        statusConnected: "按住说话",
+                        statusError: "错误",
+                        statusDisconnected: "未连接",
+                        statusClose: "已断开"
+                    }
+                };
+            }
+
+            applyUILang(langCode) {
+                const translations = this.getUITranslations();
+                const lang = translations[langCode] ? langCode : 'en';
+                const t = translations[lang];
+
+                localStorage.setItem('livetranslate_ui_lang', lang);
+                this.currentUILang = lang;
+                this.uiLangSelect.value = lang;
+
+                // 更新配置卡片元素
+                document.getElementById('uiTitle').textContent = t.title;
+                document.getElementById('uiDesc').textContent = t.desc;
+                document.getElementById('labelApiKey').textContent = t.apiKeyLabel;
+                document.getElementById('apiKeyInput').placeholder = t.apiKeyPlaceholder;
+                document.getElementById('titleSideB').textContent = t.sideBTitle;
+                document.getElementById('titleSideA').textContent = t.sideATitle;
+                
+                // 配置项 Label
+                const langLabels = document.querySelectorAll('.labelLang');
+                const voiceLabels = document.querySelectorAll('.labelVoice');
+                if (langLabels.length >= 2) {
+                    langLabels[0].textContent = t.langLabel;
+                    langLabels[1].textContent = t.langLabel;
+                }
+                if (voiceLabels.length >= 2) {
+                    voiceLabels[0].textContent = t.voiceLabel;
+                    voiceLabels[1].textContent = t.voiceLabel;
+                }
+
+                document.getElementById('labelMicrophone').textContent = t.micLabel;
+                document.getElementById('labelDisableEcho').textContent = t.disableEchoLabel;
+                document.getElementById('labelEnableStereo').textContent = t.enableStereoLabel;
+
+                this.startBtn.textContent = t.startBtnText;
+            }
+
+            getUIStrings(side) {
+                const sideLang = (side === 'A') ? this.langSelectA.value : this.langSelectB.value;
+                
+                // 根据该侧语言自动适配 UI。如果不是 zh 或 en，则回落到当前主 UI 语言
+                let langCode = 'en'; 
+                if (sideLang === 'zh') {
+                    langCode = 'zh';
+                } else if (sideLang === 'en') {
+                    langCode = 'en';
+                } else {
+                    langCode = this.currentUILang || 'en';
+                }
+
+                const translations = this.getUITranslations();
+                return translations[langCode] || translations['en'];
+            }
+
+            getLanguageName(optionText, targetLangCode) {
+                const isZh = (targetLangCode === 'zh');
+                const match = optionText.match(/(.*?)\s*\((.*?)\)/);
+                if (match) {
+                    return isZh ? match[1].trim() : match[2].trim();
+                }
+                return optionText;
+            }
+
             async startTranslation() {
+                const uiCurrent = (this.getUITranslations()[this.currentUILang || 'en'] || this.getUITranslations()['en']);
                 const apiKey = this.apiKeyInput.value.trim();
                 if (!apiKey) {
-                    alert('请输入 DashScope API Key');
+                    alert(uiCurrent.alertApiKey);
                     return;
                 }
                 if (!this.audioStream) {
-                    alert('请允许麦克风权限后再开始');
+                    alert(uiCurrent.alertMic);
                     return;
                 }
 
@@ -1049,11 +1197,19 @@
                 this.renderTranscript('A');
                 this.renderTranscript('B');
 
+                // 动态更新面板标题和对方语言
+                const uiA = this.getUIStrings('A');
+                const uiB = this.getUIStrings('B');
+                this.panelTitleA.textContent = uiA.panelTitleA;
+                this.panelTitleB.textContent = uiB.panelTitleB;
+
                 // 显示双方发言语言提示
-                const langA_Name = this.langSelectA.options[this.langSelectA.selectedIndex].text.split(' ')[0];
-                const langB_Name = this.langSelectB.options[this.langSelectB.selectedIndex].text.split(' ')[0];
-                this.sideLabelA.textContent = `对方说的语言: ${langB_Name}`;
-                this.sideLabelB.textContent = `对方说的语言: ${langA_Name}`;
+                const optionA_Text = this.langSelectA.options[this.langSelectA.selectedIndex].text;
+                const optionB_Text = this.langSelectB.options[this.langSelectB.selectedIndex].text;
+                const langB_Name = this.getLanguageName(optionB_Text, (this.langSelectA.value === 'zh' ? 'zh' : 'en'));
+                const langA_Name = this.getLanguageName(optionA_Text, (this.langSelectB.value === 'zh' ? 'zh' : 'en'));
+                this.sideLabelA.textContent = `${uiA.targetLabel}: ${langB_Name}`;
+                this.sideLabelB.textContent = `${uiB.targetLabel}: ${langA_Name}`;
 
                 // 连接 WebSocket A (A 侧发言流：母语A -> 翻译成B，由B收听)
                 this.connectWebSocket('A', apiKey);
@@ -1070,13 +1226,14 @@
                 wsUrl.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
                 
                 const ws = new WebSocket(wsUrl.toString());
+                const ui = this.getUIStrings(side);
 
                 if (side === 'A') {
                     this.wsA = ws;
-                    this.updateStatus('A', 'connecting', '连接中...');
+                    this.updateStatus('A', 'connecting', ui.statusConnecting);
                 } else {
                     this.wsB = ws;
-                    this.updateStatus('B', 'connecting', '连接中...');
+                    this.updateStatus('B', 'connecting', ui.statusConnecting);
                 }
 
                 ws.onopen = () => {
@@ -1097,6 +1254,7 @@
                 };
 
                 ws.onmessage = (event) => {
+                    const uiMsg = this.getUIStrings(side);
                     if (typeof event.data === 'string') {
                         if (event.data === 'ping') {
                             if (ws.readyState === WebSocket.OPEN) ws.send('pong');
@@ -1105,22 +1263,17 @@
                         try {
                             const message = JSON.parse(event.data);
                             if (message.type === 'ready') {
-                                this.updateStatus(side, 'connected', '按住说话');
+                                this.updateStatus(side, 'connected', uiMsg.statusConnected);
                             } else if (message.type === 'translation_text') {
-                                // 翻译文本逻辑：
-                                // A 侧连接 (wsA)：收到的是 A 翻译成 B 语言的文本，显示在 B 屏幕（Top）
-                                // B 侧连接 (wsB)：收到的是 B 翻译成 A 语言的文本，显示在 A 屏幕（Bottom）
                                 const targetSide = side === 'A' ? 'B' : 'A';
                                 this.handleIncomingText(targetSide, message.data, message.is_final);
                             } else if (message.type === 'error') {
-                                this.updateStatus(side, 'disconnected', message.message || '连接错误');
+                                this.updateStatus(side, 'disconnected', message.message || uiMsg.statusError);
                             }
                         } catch (e) {
                             console.log(`WebSocket ${side} 收到非JSON文本:`, event.data);
                         }
                     } else if (event.data instanceof Blob) {
-                        // wsA 接收到翻译成 B 的音频 -> 由 B 听 -> 声道 Pan 到左扬声器
-                        // wsB 接收到翻译成 A 的音频 -> 由 A 听 -> 声道 Pan 到右扬声器
                         this.enqueueAudioBlob(event.data, side);
                     } else if (event.data instanceof ArrayBuffer) {
                         const audioBlob = new Blob([event.data], { type: 'audio/pcm' });
@@ -1129,13 +1282,15 @@
                 };
 
                 ws.onclose = (event) => {
+                    const uiClose = this.getUIStrings(side);
                     console.log(`WebSocket ${side} 已关闭`, event);
-                    this.updateStatus(side, 'disconnected', '未连接');
+                    this.updateStatus(side, 'disconnected', uiClose.statusDisconnected);
                 };
 
                 ws.onerror = (error) => {
+                    const uiErr = this.getUIStrings(side);
                     console.error(`WebSocket ${side} 错误:`, error);
-                    this.updateStatus(side, 'disconnected', '错误');
+                    this.updateStatus(side, 'disconnected', uiErr.statusError);
                 };
             }
 
@@ -1189,7 +1344,8 @@
                     html += `<div class="sentence interim">${interim}</div>`;
                 }
                 if (!html) {
-                    html = `<div class="sentence interim">等待对方说话...</div>`;
+                    const ui = this.getUIStrings(side);
+                    html = `<div class="sentence interim">${ui.waiting}</div>`;
                 }
 
                 container.innerHTML = html;
