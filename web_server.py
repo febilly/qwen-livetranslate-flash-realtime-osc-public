@@ -88,6 +88,7 @@ async def create_and_connect_client(
     voice: str,
     audio_enabled: bool,
     voice_clone_frequency: str | None,
+    source_language: str | None = None,
 ) -> WebTranslateClient:
     """创建并连接WebTranslateClient"""
     client = WebTranslateClient(
@@ -96,10 +97,11 @@ async def create_and_connect_client(
         voice=voice,
         audio_enabled=audio_enabled,
         voice_clone_frequency=voice_clone_frequency,
+        source_language=source_language,
     )
 
     await client.connect()
-    logger.info(f"WebTranslateClient连接成功, 目标语言: {target_language}, 音色: {voice}")
+    logger.info(f"WebTranslateClient连接成功, 目标语言: {target_language}, 音色: {voice}, 源语言: {source_language}")
     return client
 
 
@@ -167,6 +169,21 @@ async def websocket_endpoint(websocket: WebSocket):
             logger.error(f"发送翻译文本失败: {e}")
             websocket_active = False
 
+    def on_asr_received(text: str, is_final: bool = False):
+        """处理接收到的 ASR (说话人原文) 文本"""
+        nonlocal websocket_active
+        if not websocket_active:
+            return
+        try:
+            timestamp = time.strftime("%H:%M:%S")
+            asyncio.create_task(
+                websocket.send_json({"type": "asr_text", "data": text, "is_final": is_final})
+            )
+            logger.info(f"[{timestamp}] 服务端发送 ASR 文本: {text} (is_final: {is_final})")
+        except Exception as e:
+            logger.error(f"发送 ASR 文本失败: {e}")
+            websocket_active = False
+
     async def on_audio_received(audio_data: bytes):
         nonlocal websocket_active
         if not websocket_active:
@@ -187,6 +204,7 @@ async def websocket_endpoint(websocket: WebSocket):
             voice=config.get("voice", "Tina"),
             audio_enabled=bool(config.get("audio_enabled", True)),
             voice_clone_frequency=config.get("voice_clone_frequency") or None,
+            source_language=config.get("source_language") or None,
         )
         if config.get("mic_mode") == "push_to_talk":
             await model_client.pause_audio_processing()
@@ -206,7 +224,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if client is None:
                     logger.info("尝试创建并连接WebTranslateClient...")
                     client = await connect_model_client()
-                    message_task = asyncio.create_task(client.handle_server_messages(on_text_received, on_audio_received))
+                    message_task = asyncio.create_task(client.handle_server_messages(on_text_received, on_audio_received, on_asr_received))
                     reconnect_manager.reset()
                     await websocket.send_json({"type": "ready"})
                     logger.info("WebTranslateClient已连接并准备就绪")

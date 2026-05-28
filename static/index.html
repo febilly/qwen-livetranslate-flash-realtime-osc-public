@@ -309,19 +309,64 @@
 
         .sentence {
             font-size: 1.15rem;
-            line-height: 1.6;
-            margin-bottom: 2px;
+            line-height: 1.5;
+            padding: 10px 14px;
+            margin-bottom: 4px;
             animation: fadeIn 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            max-width: 80%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
         }
 
-        .sentence.final {
+        .sentence.final.translation {
+            align-self: flex-start;
+            text-align: left;
+            background: #ffffff;
+            border-radius: 16px 16px 16px 4px;
             color: var(--color-text-dark);
             font-weight: 600;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        .sentence.interim {
+        .sentence.interim.translation {
+            align-self: flex-start;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px 16px 16px 4px;
             color: var(--color-text-light);
             font-style: italic;
+            border: 1px dashed rgba(0, 0, 0, 0.05);
+        }
+
+        .sentence.final.asr {
+            align-self: flex-end;
+            text-align: right;
+            background: rgba(0, 0, 0, 0.06);
+            border-radius: 16px 16px 4px 16px;
+            color: var(--color-text-light);
+            font-weight: normal;
+            font-size: 1rem;
+        }
+
+        .sentence.interim.asr {
+            align-self: flex-end;
+            text-align: right;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 16px 16px 4px 16px;
+            color: var(--color-text-light);
+            font-style: italic;
+            font-size: 1rem;
+        }
+
+        .sentence.interim:not(.asr):not(.translation) {
+            align-self: center;
+            background: none;
+            box-shadow: none;
+            color: var(--color-text-light);
+            font-style: italic;
+            font-size: 0.95rem;
+            padding: 8px;
         }
 
         @keyframes fadeIn {
@@ -648,10 +693,12 @@
                 this.isAudioPlayingB = false;
 
                 // 翻译文本积累
-                this.finalSentencesA = []; // 显示在 A 屏幕上的最终句子（B 翻译成 A）
-                this.interimSentenceA = "";
-                this.finalSentencesB = []; // 显示在 B 屏幕上的最终句子（A 翻译成 B）
-                this.interimSentenceB = "";
+                this.finalSentencesA = [];
+                this.interimAsrA = null;
+                this.interimTransA = null;
+                this.finalSentencesB = [];
+                this.interimAsrB = null;
+                this.interimTransB = null;
 
                 // 配置存储键
                 this.storageKeyApiKey = 'dashscope_api_key';
@@ -1071,6 +1118,7 @@
                         alertApiKey: "Please enter DashScope API Key",
                         alertMic: "Please grant microphone permission before starting",
                         waiting: "Waiting for voice...",
+                        asrPrefix: "Me: ",
                         defaultMic: "🎤 Hold or Tap to Talk",
                         recording: "🎙️ Recording...",
                         releaseToStop: "🎙️ Release to Stop",
@@ -1100,6 +1148,7 @@
                         alertApiKey: "请输入 DashScope API Key",
                         alertMic: "请允许麦克风权限后再开始",
                         waiting: "等待对方说话...",
+                        asrPrefix: "我: ",
                         defaultMic: "🎤 按住或轻点说话",
                         recording: "🎙️ 正在说话...",
                         releaseToStop: "🎙️ 松开结束",
@@ -1196,9 +1245,11 @@
 
                 // 初始化文本
                 this.finalSentencesA = [];
-                this.interimSentenceA = "";
+                this.interimAsrA = null;
+                this.interimTransA = null;
                 this.finalSentencesB = [];
-                this.interimSentenceB = "";
+                this.interimAsrB = null;
+                this.interimTransB = null;
                 this.renderTranscript('A');
                 this.renderTranscript('B');
 
@@ -1246,6 +1297,7 @@
                     const targetLang = side === 'A' ? this.langSelectB.value : this.langSelectA.value;
                     const voiceVal = side === 'A' ? this.voiceSelectB.value : this.voiceSelectA.value;
                     const voiceConfig = this.getVoiceConfig(voiceVal);
+                    const sourceLang = side === 'A' ? this.langSelectA.value : this.langSelectB.value;
 
                     ws.send(JSON.stringify({
                         type: 'connection.start',
@@ -1254,7 +1306,8 @@
                         voice: voiceConfig.voice,
                         audio_enabled: true,
                         voice_clone_frequency: voiceConfig.voice_clone_frequency,
-                        mic_mode: 'push_to_talk'
+                        mic_mode: 'push_to_talk',
+                        source_language: sourceLang
                     }));
                 };
 
@@ -1271,7 +1324,9 @@
                                 this.updateStatus(side, 'connected', uiMsg.statusConnected);
                             } else if (message.type === 'translation_text') {
                                 const targetSide = side === 'A' ? 'B' : 'A';
-                                this.handleIncomingText(targetSide, message.data, message.is_final);
+                                this.handleIncomingText(targetSide, message.data, message.is_final, false);
+                            } else if (message.type === 'asr_text') {
+                                this.handleIncomingText(side, message.data, message.is_final, true);
                             } else if (message.type === 'error') {
                                 this.updateStatus(side, 'disconnected', message.message || uiMsg.statusError);
                             }
@@ -1316,21 +1371,39 @@
                 }));
             }
 
-            handleIncomingText(targetSide, text, isFinal) {
+            handleIncomingText(targetSide, text, isFinal, isAsr = false) {
                 if (targetSide === 'A') {
-                    if (isFinal) {
-                        this.finalSentencesA.push(text);
-                        this.interimSentenceA = "";
+                    if (isAsr) {
+                        if (isFinal) {
+                            if (text) this.finalSentencesA.push({ text, isAsr: true });
+                            this.interimAsrA = null;
+                        } else {
+                            this.interimAsrA = text;
+                        }
                     } else {
-                        this.interimSentenceA = text;
+                        if (isFinal) {
+                            if (text) this.finalSentencesA.push({ text, isAsr: false });
+                            this.interimTransA = null;
+                        } else {
+                            this.interimTransA = text;
+                        }
                     }
                     this.renderTranscript('A');
                 } else {
-                    if (isFinal) {
-                        this.finalSentencesB.push(text);
-                        this.interimSentenceB = "";
+                    if (isAsr) {
+                        if (isFinal) {
+                            if (text) this.finalSentencesB.push({ text, isAsr: true });
+                            this.interimAsrB = null;
+                        } else {
+                            this.interimAsrB = text;
+                        }
                     } else {
-                        this.interimSentenceB = text;
+                        if (isFinal) {
+                            if (text) this.finalSentencesB.push({ text, isAsr: false });
+                            this.interimTransB = null;
+                        } else {
+                            this.interimTransB = text;
+                        }
                     }
                     this.renderTranscript('B');
                 }
@@ -1339,17 +1412,26 @@
             renderTranscript(side) {
                 const container = side === 'A' ? this.transcriptA : this.transcriptB;
                 const finals = side === 'A' ? this.finalSentencesA : this.finalSentencesB;
-                const interim = side === 'A' ? this.interimSentenceA : this.interimSentenceB;
+                const interimAsr = side === 'A' ? this.interimAsrA : this.interimAsrB;
+                const interimTrans = side === 'A' ? this.interimTransA : this.interimTransB;
+                const ui = this.getUIStrings(side);
 
                 let html = "";
-                finals.forEach((s) => {
-                    html += `<div class="sentence final">${s}</div>`;
+                finals.forEach((item) => {
+                    const bubbleClass = item.isAsr ? "asr" : "translation";
+                    const prefix = item.isAsr ? (ui.asrPrefix || "Me: ") : "";
+                    html += `<div class="sentence final ${bubbleClass}">${prefix}${item.text}</div>`;
                 });
-                if (interim) {
-                    html += `<div class="sentence interim">${interim}</div>`;
+
+                if (interimAsr) {
+                    const prefix = ui.asrPrefix || "Me: ";
+                    html += `<div class="sentence interim asr">${prefix}${interimAsr}</div>`;
                 }
+                if (interimTrans) {
+                    html += `<div class="sentence interim translation">${interimTrans}</div>`;
+                }
+
                 if (!html) {
-                    const ui = this.getUIStrings(side);
                     html = `<div class="sentence interim">${ui.waiting}</div>`;
                 }
 

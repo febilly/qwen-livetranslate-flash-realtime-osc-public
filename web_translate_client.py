@@ -26,13 +26,15 @@ class WebTranslateClient:
         voice: str | None = DEFAULT_VOICE,
         *,
         audio_enabled: bool = True,
-        voice_clone_frequency: str | None = None
+        voice_clone_frequency: str | None = None,
+        source_language: str | None = None
     ):
         if not api_key:
             raise ValueError("API key cannot be empty.")
             
         self.api_key = api_key
         self.target_language = target_language
+        self.source_language = source_language
         self.audio_enabled = audio_enabled and self._supports_audio_output(target_language)
         self.voice = voice if voice else self.DEFAULT_VOICE
         self.voice_clone_frequency = (
@@ -79,6 +81,11 @@ class WebTranslateClient:
             }
         }
 
+        if self.source_language:
+            session["input_audio_transcription"] = {
+                "language": self.source_language
+            }
+
         if audio_enabled and self.voice_clone_frequency:
             session["voice"] = "default"
             session["enable_voice_clone"] = True
@@ -116,6 +123,14 @@ class WebTranslateClient:
         self._debounce_task = asyncio.create_task(_runner())
 
     def _call_text_callback(self, callback, text: str, is_final: bool):
+        if not callback:
+            return
+        try:
+            callback(text, is_final)
+        except TypeError:
+            callback(text)
+
+    def _call_asr_callback(self, callback, text: str, is_final: bool):
         if not callback:
             return
         try:
@@ -291,12 +306,13 @@ class WebTranslateClient:
         }
         await self.ws.send(json.dumps(event))
 
-    async def handle_server_messages(self, on_text_received, on_audio_received=None):
+    async def handle_server_messages(self, on_text_received, on_audio_received=None, on_asr_received=None):
         """循环处理来自服务器的消息。
         
         Args:
             on_text_received: 文本回调函数
             on_audio_received: 音频回调函数（可选，用于Web环境）
+            on_asr_received: ASR（说话人原文）回调函数
         """
         try:
             async for message in self.ws:
@@ -331,6 +347,16 @@ class WebTranslateClient:
                     if text:
                         await self._debounced_emit_text(text, True)
                         self._call_text_callback(on_text_received, text, False)
+                elif event_type == "conversation.item.input_audio_transcription.delta":
+                    text = event.get("delta", "")
+                    pass # print(f"[{timestamp}] 接收到 ASR 文本片段: '{text}'")
+                    if text:
+                        self._call_asr_callback(on_asr_received, text, False)
+                elif event_type == "conversation.item.input_audio_transcription.completed":
+                    text = event.get("transcript", "")
+                    pass # print(f"[{timestamp}] 接收到 ASR 最终文本: '{text}'")
+                    if text:
+                        self._call_asr_callback(on_asr_received, text, True)
                 
                 elif event_type == "response.audio.delta" and self.audio_enabled:
                     audio_b64 = event.get("delta", "")
