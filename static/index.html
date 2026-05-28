@@ -546,6 +546,10 @@
                     <input type="checkbox" id="disableEchoCancellation">
                     <span>禁用浏览器回声消除 (可能提高某些设备的拾音效果)</span>
                 </label>
+                <label class="checkbox-group" style="margin-top: 8px;">
+                    <input type="checkbox" id="enableStereoRouting">
+                    <span>开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)</span>
+                </label>
             </div>
 
             <button class="start-btn" id="startBtn">开启面对面翻译</button>
@@ -564,7 +568,7 @@
             <!-- 控制区 (物理屏幕上方) -->
             <div class="control-row">
                 <button class="mic-btn" id="micBtnB" disabled>
-                    <span class="mic-btn-text">🎤 按住说话</span>
+                    <span class="mic-btn-text">🎤 按住或轻点说话</span>
                     <div class="mic-btn-visualizer" id="barsB"></div>
                 </button>
             </div>
@@ -590,7 +594,7 @@
             <!-- 控制区 (物理屏幕下方) -->
             <div class="control-row">
                 <button class="mic-btn" id="micBtnA" disabled>
-                    <span class="mic-btn-text">🎤 按住说话</span>
+                    <span class="mic-btn-text">🎤 按住或轻点说话</span>
                     <div class="mic-btn-visualizer" id="barsA"></div>
                 </button>
             </div>
@@ -661,6 +665,7 @@
                 this.voiceSelectB = document.getElementById('voiceSelectB');
                 this.microphoneSelect = document.getElementById('microphoneSelect');
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
+                this.enableStereoRouting = document.getElementById('enableStereoRouting');
                 this.startBtn = document.getElementById('startBtn');
 
                 // 翻译页元素
@@ -720,6 +725,7 @@
                         await this.changeMicrophone();
                     }
                 };
+                this.enableStereoRouting.onchange = saveHandler;
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
 
                 // 绑定按住说话事件 (A侧)
@@ -729,28 +735,104 @@
             }
 
             bindMicEvents(btn, callback) {
+                let pressStartTime = 0;
+                let deactivatingToggle = false;
+                let pendingTimeout = null;
+                const textSpan = btn.querySelector('.mic-btn-text');
+                const defaultText = "🎤 按住或轻点说话";
+
                 const startPress = (e) => {
                     e.preventDefault();
                     if (btn.disabled) return;
-                    btn.classList.add('active');
-                    callback(true);
-                    try { btn.setPointerCapture(e.pointerId); } catch(err) {}
+
+                    const mode = btn.dataset.recordingMode;
+                    if (mode === 'toggle') {
+                        // 持续录音中点击 -> 停止录音
+                        deactivatingToggle = true;
+                        btn.classList.remove('active');
+                        btn.dataset.recordingMode = '';
+                        if (textSpan) textSpan.textContent = defaultText;
+                        callback(false);
+                    } else {
+                        // 开始录音，初始为 pending 状态
+                        deactivatingToggle = false;
+                        pressStartTime = Date.now();
+                        btn.classList.add('active');
+                        btn.dataset.recordingMode = 'pending';
+                        if (textSpan) textSpan.textContent = "🎙️ 正在说话...";
+                        callback(true);
+                        
+                        try { btn.setPointerCapture(e.pointerId); } catch(err) {}
+
+                        if (pendingTimeout) clearTimeout(pendingTimeout);
+                        pendingTimeout = setTimeout(() => {
+                            if (btn.dataset.recordingMode === 'pending') {
+                                btn.dataset.recordingMode = 'hold';
+                                if (textSpan) textSpan.textContent = "🎙️ 松开结束";
+                            }
+                        }, 350);
+                    }
                 };
 
                 const stopPress = (e) => {
                     e.preventDefault();
-                    if (!btn.classList.contains('active')) return;
-                    btn.classList.remove('active');
-                    callback(false);
                     try { btn.releasePointerCapture(e.pointerId); } catch(err) {}
+
+                    if (pendingTimeout) {
+                        clearTimeout(pendingTimeout);
+                        pendingTimeout = null;
+                    }
+
+                    if (deactivatingToggle) {
+                        deactivatingToggle = false;
+                        return;
+                    }
+
+                    const mode = btn.dataset.recordingMode;
+                    if (mode === 'pending') {
+                        // 在 350ms 内松开 -> 判断为短点 -> 进入持续录音模式
+                        btn.dataset.recordingMode = 'toggle';
+                        if (textSpan) textSpan.textContent = "🎙️ 持续录音 (轻点停止)";
+                    } else if (mode === 'hold') {
+                        // 超过 350ms 后松开 -> 判断为长按结束 -> 停止录音
+                        btn.classList.remove('active');
+                        btn.dataset.recordingMode = '';
+                        if (textSpan) textSpan.textContent = defaultText;
+                        callback(false);
+                    }
+                };
+
+                const cancelPress = (e) => {
+                    e.preventDefault();
+                    try { btn.releasePointerCapture(e.pointerId); } catch(err) {}
+
+                    if (pendingTimeout) {
+                        clearTimeout(pendingTimeout);
+                        pendingTimeout = null;
+                    }
+
+                    const mode = btn.dataset.recordingMode;
+                    if (mode === 'pending' || mode === 'hold') {
+                        btn.classList.remove('active');
+                        btn.dataset.recordingMode = '';
+                        if (textSpan) textSpan.textContent = defaultText;
+                        callback(false);
+                    }
                 };
 
                 btn.addEventListener('pointerdown', startPress);
                 btn.addEventListener('pointerup', stopPress);
-                btn.addEventListener('pointercancel', stopPress);
+                btn.addEventListener('pointercancel', cancelPress);
                 btn.addEventListener('lostpointercapture', () => {
-                    if (btn.classList.contains('active')) {
+                    const mode = btn.dataset.recordingMode;
+                    if (mode === 'pending' || mode === 'hold') {
+                        if (pendingTimeout) {
+                            clearTimeout(pendingTimeout);
+                            pendingTimeout = null;
+                        }
                         btn.classList.remove('active');
+                        btn.dataset.recordingMode = '';
+                        if (textSpan) textSpan.textContent = defaultText;
                         callback(false);
                     }
                 });
@@ -768,6 +850,9 @@
                     if (typeof s.disableEchoCancellation === 'boolean') {
                         this.disableEchoCancellation.checked = s.disableEchoCancellation;
                     }
+                    if (typeof s.enableStereoRouting === 'boolean') {
+                        this.enableStereoRouting.checked = s.enableStereoRouting;
+                    }
                     if (s.selectedMicrophoneId) {
                         this.selectedMicrophoneId = s.selectedMicrophoneId;
                     }
@@ -783,6 +868,7 @@
                     langB: this.langSelectB.value,
                     voiceB: this.voiceSelectB.value,
                     disableEchoCancellation: this.disableEchoCancellation.checked,
+                    enableStereoRouting: this.enableStereoRouting.checked,
                     selectedMicrophoneId: this.microphoneSelect.value || ''
                 };
                 localStorage.setItem(this.storageKeySettings, JSON.stringify(settings));
@@ -1260,7 +1346,7 @@
                 }
             }
 
-            // wsA -> A侧的翻译音频（给B听） -> 从左扬声器播放 (Channel 0)
+            // wsA -> A侧的翻译音频（给B听）
             async playNextAudioFromQueueA() {
                 if (this.isAudioPlayingA) return;
                 if (!this.playbackQueueA.length) return;
@@ -1272,10 +1358,17 @@
                     await this.playbackAudioContext.resume();
                 }
 
-                // 创建双声道 (stereo) 音频缓冲区，采样率 24000Hz
-                const audioBuffer = this.playbackAudioContext.createBuffer(2, float32Array.length, 24000);
-                // 渲染到左声道 (channel 0)
-                audioBuffer.copyToChannel(float32Array, 0);
+                let audioBuffer;
+                if (this.enableStereoRouting.checked) {
+                    // 创建双声道 (stereo) 音频缓冲区，采样率 24000Hz
+                    audioBuffer = this.playbackAudioContext.createBuffer(2, float32Array.length, 24000);
+                    // 渲染到左声道 (channel 0)
+                    audioBuffer.copyToChannel(float32Array, 0);
+                } else {
+                    // 默认单声道 (mono) 播放
+                    audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                    audioBuffer.copyToChannel(float32Array, 0);
+                }
 
                 const source = this.playbackAudioContext.createBufferSource();
                 source.buffer = audioBuffer;
@@ -1293,7 +1386,7 @@
                 source.start();
             }
 
-            // wsB -> B侧的翻译音频（给A听） -> 从右扬声器播放 (Channel 1)
+            // wsB -> B侧的翻译音频（给A听）
             async playNextAudioFromQueueB() {
                 if (this.isAudioPlayingB) return;
                 if (!this.playbackQueueB.length) return;
@@ -1305,10 +1398,17 @@
                     await this.playbackAudioContext.resume();
                 }
 
-                // 创建双声道 (stereo) 音频缓冲区，采样率 24000Hz
-                const audioBuffer = this.playbackAudioContext.createBuffer(2, float32Array.length, 24000);
-                // 渲染到右声道 (channel 1)
-                audioBuffer.copyToChannel(float32Array, 1);
+                let audioBuffer;
+                if (this.enableStereoRouting.checked) {
+                    // 创建双声道 (stereo) 音频缓冲区，采样率 24000Hz
+                    audioBuffer = this.playbackAudioContext.createBuffer(2, float32Array.length, 24000);
+                    // 渲染到右声道 (channel 1)
+                    audioBuffer.copyToChannel(float32Array, 1);
+                } else {
+                    // 默认单声道 (mono) 播放
+                    audioBuffer = this.playbackAudioContext.createBuffer(1, float32Array.length, 24000);
+                    audioBuffer.copyToChannel(float32Array, 0);
+                }
 
                 const source = this.playbackAudioContext.createBufferSource();
                 source.buffer = audioBuffer;
@@ -1345,6 +1445,13 @@
                 this.isRecordingB = false;
                 this.micBtnA.classList.remove('active');
                 this.micBtnB.classList.remove('active');
+                this.micBtnA.dataset.recordingMode = '';
+                this.micBtnB.dataset.recordingMode = '';
+                const textSpanA = this.micBtnA.querySelector('.mic-btn-text');
+                const textSpanB = this.micBtnB.querySelector('.mic-btn-text');
+                const defaultText = "🎤 按住或轻点说话";
+                if (textSpanA) textSpanA.textContent = defaultText;
+                if (textSpanB) textSpanB.textContent = defaultText;
 
                 // 清空队列
                 this.playbackQueueA = [];
