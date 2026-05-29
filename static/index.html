@@ -210,6 +210,14 @@
             height: 16px;
         }
 
+        .btn-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
         .start-btn {
             width: 100%;
             padding: 14px;
@@ -226,6 +234,30 @@
 
         .start-btn:active {
             transform: scale(0.98);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+            text-align: center;
+        }
+
+        .reset-btn:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+
+        .reset-btn:active {
+            transform: scale(0.98);
+            background: #fee2e2;
         }
 
         /* 翻译主界面 */
@@ -644,9 +676,16 @@
                     <input type="checkbox" id="showAsrTranscript" checked>
                     <span id="labelShowAsrTranscript">Show Speaker's Original Transcript (Enabled by default)</span>
                 </label>
+                <label class="checkbox-group" style="margin-top: 8px;">
+                    <input type="checkbox" id="enableAudioOutput" checked>
+                    <span id="labelEnableAudioOutput">Enable Audio Output (Enabled by default)</span>
+                </label>
             </div>
 
-            <button class="start-btn" id="startBtn">Start Translation</button>
+            <div class="btn-row">
+                <button class="start-btn" id="startBtn">Start Translation</button>
+                <button class="reset-btn" id="resetBtn">Reset All Settings</button>
+            </div>
         </div>
     </div>
 
@@ -763,7 +802,9 @@
                 this.disableEchoCancellation = document.getElementById('disableEchoCancellation');
                 this.enableStereoRouting = document.getElementById('enableStereoRouting');
                 this.showAsrTranscript = document.getElementById('showAsrTranscript');
+                this.enableAudioOutput = document.getElementById('enableAudioOutput');
                 this.startBtn = document.getElementById('startBtn');
+                this.resetBtn = document.getElementById('resetBtn');
                 this.pasteApiKeyBtn = document.getElementById('pasteApiKeyBtn');
                 this.uiLangSelect = document.getElementById('uiLangSelect');
 
@@ -841,6 +882,15 @@
                     saveHandler();
                     this.renderTranscript('A');
                     this.renderTranscript('B');
+                };
+                this.enableAudioOutput.onchange = saveHandler;
+                this.resetBtn.onclick = () => {
+                    const confirmMsg = this.currentUILang === 'zh' 
+                        ? '确定要重置所有设置吗（API Key不会被重置）？' 
+                        : 'Are you sure you want to reset all settings (API Key will not be reset)?';
+                    if (confirm(confirmMsg)) {
+                        this.resetSettings();
+                    }
                 };
                 this.microphoneSelect.onchange = () => this.changeMicrophone();
                 this.uiLangSelect.onchange = () => {
@@ -999,6 +1049,9 @@
                     if (typeof s.showAsrTranscript === 'boolean') {
                         this.showAsrTranscript.checked = s.showAsrTranscript;
                     }
+                    if (typeof s.enableAudioOutput === 'boolean') {
+                        this.enableAudioOutput.checked = s.enableAudioOutput;
+                    }
                     if (s.selectedMicrophoneId) {
                         this.selectedMicrophoneId = s.selectedMicrophoneId;
                     }
@@ -1016,9 +1069,33 @@
                     disableEchoCancellation: this.disableEchoCancellation.checked,
                     enableStereoRouting: this.enableStereoRouting.checked,
                     showAsrTranscript: this.showAsrTranscript.checked,
+                    enableAudioOutput: this.enableAudioOutput.checked,
                     selectedMicrophoneId: this.microphoneSelect.value || ''
                 };
                 localStorage.setItem(this.storageKeySettings, JSON.stringify(settings));
+            }
+
+            resetSettings() {
+                this.langSelectA.value = 'zh';
+                this.voiceSelectA.value = 'Tina';
+                this.langSelectB.value = 'en';
+                this.voiceSelectB.value = 'Jakub';
+                this.disableEchoCancellation.checked = false;
+                this.enableStereoRouting.checked = false;
+                this.showAsrTranscript.checked = true;
+                this.enableAudioOutput.checked = true;
+                this.selectedMicrophoneId = '';
+                this.microphoneSelect.value = '';
+
+                // Save defaults to storage
+                this.saveSettings();
+
+                // Apply changes
+                if (this.audioStream) {
+                    this.changeMicrophone();
+                }
+                this.renderTranscript('A');
+                this.renderTranscript('B');
             }
 
             async requestUserMedia() {
@@ -1189,7 +1266,9 @@
                         disableEchoLabel: "Disable Echo Cancellation (may improve pickup on some devices)",
                         enableStereoLabel: "Enable Stereo Routing (A-Left, B-Right, default off)",
                         showAsrLabel: "Show Speaker's Original Transcript (Enabled by default)",
+                        enableAudioOutputLabel: "Enable Audio Output (Enabled by default)",
                         startBtnText: "Start Translation",
+                        resetBtnText: "Reset Settings",
                         alertApiKey: "Please enter DashScope API Key",
                         alertMic: "Please grant microphone permission before starting",
                         loadingMicrophone: "Loading...",
@@ -1252,7 +1331,9 @@
                         disableEchoLabel: "禁用浏览器回声消除 (可能提高某些设备的拾音效果)",
                         enableStereoLabel: "开启左右声道路由 (A侧左声道，B侧右声道，默认关闭)",
                         showAsrLabel: "显示说话人转写原文 (默认开启)",
+                        enableAudioOutputLabel: "启用音频输出 (默认开启)",
                         startBtnText: "开启面对面翻译",
+                        resetBtnText: "重置所有设置",
                         alertApiKey: "请输入 DashScope API Key",
                         alertMic: "请允许麦克风权限后再开始",
                         loadingMicrophone: "加载中...",
@@ -1387,8 +1468,10 @@
                 document.getElementById('labelDisableEcho').textContent = t.disableEchoLabel;
                 document.getElementById('labelEnableStereo').textContent = t.enableStereoLabel;
                 document.getElementById('labelShowAsrTranscript').textContent = t.showAsrLabel;
+                document.getElementById('labelEnableAudioOutput').textContent = t.enableAudioOutputLabel;
 
                 this.startBtn.textContent = t.startBtnText;
+                document.getElementById('resetBtn').textContent = t.resetBtnText;
                 this.endBtn.title = t.endTitle;
                 if (this.microphoneSelect.options.length === 1 && !this.microphoneSelect.options[0].value) {
                     this.microphoneSelect.options[0].textContent = t.loadingMicrophone;
@@ -1761,6 +1844,7 @@
 
             // ========= 播放与双声道渲染 =========
             async enqueueAudioBlob(audioBlob, side) {
+                if (!this.enableAudioOutput.checked) return;
                 try {
                     if (!this.playbackAudioContext) {
                         this.playbackAudioContext = new (window.AudioContext || window.webkitAudioContext)();
