@@ -530,6 +530,60 @@
             opacity: 0.6;
         }
 
+        /* 屏幕中心红叉两侧的「让对方说」按钮：
+           右侧(正向)给我按、控制 B；左侧(旋转180°)给对方按、控制 A。
+           这样两个视角下「让对方说」都落在各自的右手边。 */
+        .helper-btn {
+            position: absolute;
+            top: 50%;
+            z-index: 90;
+            height: 44px;
+            border-radius: 22px;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 0 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            outline: none;
+            white-space: nowrap;
+            min-width: 140px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background-color 0.15s;
+        }
+
+        /* 我的按钮：贴右边缘、正常朝向，颜色 = B 侧（绿，它控制 B 的麦克风） */
+        #helperBtnB {
+            right: 16px;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, var(--color-b-primary) 0%, #059669 100%);
+        }
+
+        /* 对方的按钮：贴左边缘、旋转 180° 朝向对方，颜色 = A 侧（蓝，它控制 A 的麦克风） */
+        #helperBtnA {
+            left: 16px;
+            transform: translateY(-50%) rotate(180deg);
+            background: linear-gradient(135deg, var(--color-a-primary) 0%, #2563eb 100%);
+        }
+
+        /* 激活（正在收音）时换成红色底，宽度不变 */
+        .helper-btn.active {
+            background: linear-gradient(135deg, var(--color-danger) 0%, #dc2626 100%) !important;
+        }
+
+        .helper-btn:disabled {
+            background: #d1d5db !important;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
         /* 屏幕正中央的悬浮结束按钮 */
         .end-btn {
             position: absolute;
@@ -748,6 +802,14 @@
 
         <!-- 悬浮在屏幕正中心的结束按钮 -->
         <button class="end-btn" id="endBtn" title="End translation">✕</button>
+
+        <!-- 红叉左右两侧的「让对方说」按钮：左侧(旋转180°)给对方、控制 A；右侧给我、控制 B -->
+        <button class="helper-btn" id="helperBtnA" disabled>
+            <span class="helper-btn-text">Let them talk</span>
+        </button>
+        <button class="helper-btn" id="helperBtnB" disabled>
+            <span class="helper-btn-text">Let them talk</span>
+        </button>
     </div>
 
     <script>
@@ -823,6 +885,8 @@
                 this.transcriptA = document.getElementById('transcriptA');
                 this.barsA = document.getElementById('barsA');
                 this.micBtnA = document.getElementById('micBtnA');
+                this.helperBtnA = document.getElementById('helperBtnA');
+                this.helperBtnB = document.getElementById('helperBtnB');
 
                 // B侧面板元素
                 this.statusDotB = document.getElementById('statusDotB');
@@ -905,6 +969,57 @@
                 this.bindMicEvents(this.micBtnA, (active) => this.setAudioRecordingState('A', active));
                 // 绑定按住说话事件 (B侧)
                 this.bindMicEvents(this.micBtnB, (active) => this.setAudioRecordingState('B', active));
+
+                // 红叉两侧的「让对方说」按钮：各自给对方一键切换麦克风
+                if (this.helperBtnB) {
+                    this.helperBtnB.addEventListener('click', () => this.toggleRemoteMic('B'));
+                }
+                if (this.helperBtnA) {
+                    this.helperBtnA.addEventListener('click', () => this.toggleRemoteMic('A'));
+                }
+            }
+
+            // 替某一侧切换麦克风：点击开始、再点击结束（含互斥与两控件同步）
+            toggleRemoteMic(side) {
+                const btn = side === 'A' ? this.helperBtnA : this.helperBtnB;
+                if (!btn || btn.disabled) return;
+                const cur = side === 'A' ? this.isRecordingA : this.isRecordingB;
+                const next = !cur;
+                // 同步该侧麦克风按钮的视觉状态，避免两个控件显示不一致
+                this.setMicButtonVisual(side, next);
+                this.setAudioRecordingState(side, next);
+            }
+
+            // 直接设置某一侧麦克风按钮的视觉状态（用于协助按钮与互斥联动）
+            setMicButtonVisual(side, active) {
+                const btn = side === 'A' ? this.micBtnA : this.micBtnB;
+                if (!btn) return;
+                const ui = this.getUIStrings(side);
+                const textSpan = btn.querySelector('.mic-btn-text');
+                if (active) {
+                    btn.classList.add('active');
+                    btn.dataset.recordingMode = 'toggle';
+                    if (textSpan) textSpan.textContent = ui.continuous;
+                } else {
+                    btn.classList.remove('active');
+                    btn.dataset.recordingMode = '';
+                    if (textSpan) textSpan.textContent = ui.defaultMic;
+                }
+            }
+
+            // 根据各侧录音状态刷新两个「让对方说」按钮的文字与高亮
+            updateHelperButtons() {
+                this._syncHelperButton(this.helperBtnA, this.isRecordingA);
+                this._syncHelperButton(this.helperBtnB, this.isRecordingB);
+            }
+
+            _syncHelperButton(btn, recording) {
+                if (!btn) return;
+                const ui = this.getUIStrings('A');
+                const textSpan = btn.querySelector('.helper-btn-text');
+                // 文字保持不变（宽度恒定），是否收音只用红光圈表示
+                if (textSpan) textSpan.textContent = ui.helperLetTalk;
+                btn.classList.toggle('active', !!recording);
             }
 
             bindMicEvents(btn, callback) {
@@ -1239,6 +1354,14 @@
                 } else {
                     btn.disabled = true;
                 }
+
+                // 「让对方说」按钮跟随其所控制侧的连接状态启用/禁用
+                if (side === 'A' && this.helperBtnA) {
+                    this.helperBtnA.disabled = (status !== 'connected');
+                }
+                if (side === 'B' && this.helperBtnB) {
+                    this.helperBtnB.disabled = (status !== 'connected');
+                }
             }
 
             getVoiceConfig(val) {
@@ -1284,6 +1407,7 @@
                         recording: "🎙️ Recording...",
                         releaseToStop: "🎙️ Release to Stop",
                         continuous: "🎙️ Continuous (Tap to Stop)",
+                        helperLetTalk: "Let them talk",
                         panelTitleA: "👤 Bottom Panel (A)",
                         panelTitleB: "👤 Top Panel (B)",
                         targetLabel: "Target Language",
@@ -1349,6 +1473,7 @@
                         recording: "🎙️ 正在说话...",
                         releaseToStop: "🎙️ 松开结束",
                         continuous: "🎙️ 持续录音 (轻点停止)",
+                        helperLetTalk: "让对方说",
                         panelTitleA: "👤 下半屏 (A)",
                         panelTitleB: "👤 上半屏 (B)",
                         targetLabel: "对方说的语言",
@@ -1430,6 +1555,8 @@
                         textEl.textContent = ui.statusDisconnected;
                     }
                 });
+
+                this.updateHelperButtons();
 
                 this.renderTranscript('A');
                 this.renderTranscript('B');
@@ -1628,6 +1755,16 @@
                 const ws = side === 'A' ? this.wsA : this.wsB;
                 if (!ws || ws.readyState !== WebSocket.OPEN) return;
 
+                // 互斥：单麦克风下不能两侧同时收音。开启一侧时自动关闭另一侧。
+                if (active) {
+                    const other = side === 'A' ? 'B' : 'A';
+                    const otherRecording = other === 'A' ? this.isRecordingA : this.isRecordingB;
+                    if (otherRecording) {
+                        this.setAudioRecordingState(other, false);
+                        this.setMicButtonVisual(other, false);
+                    }
+                }
+
                 if (side === 'A') {
                     this.isRecordingA = active;
                 } else {
@@ -1639,6 +1776,9 @@
                     type: 'audio.processing',
                     active: active
                 }));
+
+                // 同步两个「让对方说」按钮的显示
+                this.updateHelperButtons();
             }
 
             handleIncomingText(targetSide, text, isFinal, isAsr = false, stash = null) {
@@ -1977,6 +2117,15 @@
                 const textSpanB = this.micBtnB.querySelector('.mic-btn-text');
                 if (textSpanA) textSpanA.textContent = this.getUIStrings('A').defaultMic;
                 if (textSpanB) textSpanB.textContent = this.getUIStrings('B').defaultMic;
+
+                // 重置两个「让对方说」按钮
+                [this.helperBtnA, this.helperBtnB].forEach((btn) => {
+                    if (!btn) return;
+                    btn.classList.remove('active');
+                    btn.disabled = true;
+                    const helperText = btn.querySelector('.helper-btn-text');
+                    if (helperText) helperText.textContent = this.getUIStrings('A').helperLetTalk;
+                });
 
                 // 清空队列
                 this.playbackQueueA = [];
