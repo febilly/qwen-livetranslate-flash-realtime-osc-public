@@ -20,9 +20,17 @@ def check_api_key():
     api_key = os.environ.get("DASHSCOPE_API_KEY")
     if not api_key:
         print("❌ 请设置DASHSCOPE_API_KEY环境变量")
-        print("\n设置方法:")
-        print("export DASHSCOPE_API_KEY=your_api_key_here")
-        print("或者在.bashrc/.zshrc中添加上述命令")
+        print("\n设置方法（Windows）:")
+        print("  PowerShell（临时，仅当前窗口有效）:")
+        print('    $env:DASHSCOPE_API_KEY="your_api_key_here"')
+        print("  CMD（临时，仅当前窗口有效）:")
+        print("    set DASHSCOPE_API_KEY=your_api_key_here")
+        print("  永久设置（对以后新开的窗口生效，需重新打开终端）:")
+        print("    setx DASHSCOPE_API_KEY your_api_key_here")
+        print("\n或者在程序目录下新建 .env 文件（推荐，无需设置系统环境变量）:")
+        print("  在 .env 文件中写入一行:")
+        print("    DASHSCOPE_API_KEY=your_api_key_here")
+        print("  保存后重新运行本程序即可自动读取。")
         return False
     
     print(f"✅ API Key已配置: {api_key[:8]}...")
